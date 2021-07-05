@@ -83,13 +83,13 @@ function implicit_free_surface_step!(free_surface::ImplicitFreeSurface, model, �
     wait(device(model.architecture), event)
     =#
 
-    fill_halo_regions!(η, model.architecture)
+    fill_halo_regions!(η)
 
     compute_vertically_integrated_volume_flux!(∫ᶻ_Q, model, velocities_update)
 
     compute_implicit_free_surface_right_hand_side!(rhs, model, g, Δt, ∫ᶻ_Q, η)
 
-    fill_halo_regions!(rhs, model.architecture)
+    fill_halo_regions!(rhs)
 
     # solve!(x, solver, b, args...) solves A*x = b for x.
     solve!(η, free_surface.implicit_step_solver, rhs, ∫ᶻ_A.xᶠᶜᶜ, ∫ᶻ_A.yᶜᶠᶜ, g, Δt)
@@ -114,7 +114,7 @@ function compute_implicit_free_surface_right_hand_side!(rhs, model, g, Δt, ∫�
 
     wait(device(model.architecture), event)
 
-    fill_halo_regions!(rhs, model.architecture)
+    fill_halo_regions!(rhs)
 
     return nothing
 end

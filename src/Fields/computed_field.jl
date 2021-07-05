@@ -111,7 +111,7 @@ function compute!(comp::ComputedField{LX, LY, LZ}, time=nothing) where {LX, LY, 
 
     wait(device(arch), event)
 
-    fill_halo_regions!(comp, arch)
+    fill_halo_regions!(comp)
 
     return nothing
 end

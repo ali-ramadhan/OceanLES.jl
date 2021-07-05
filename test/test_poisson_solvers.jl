@@ -18,10 +18,9 @@ function random_divergent_source_term(arch, grid)
     set!(Rv, rand(Nx, Ny, Nz))
     set!(Rw, rand(Nx, Ny, Nz))
 
-    # Adding (nothing, nothing) in case we need to dispatch on ::NFBC
-    fill_halo_regions!(Ru, arch, nothing, nothing)
-    fill_halo_regions!(Rv, arch, nothing, nothing)
-    fill_halo_regions!(Rw, arch, nothing, nothing)
+    fill_halo_regions!(Ru)
+    fill_halo_regions!(Rv)
+    fill_halo_regions!(Rw)
 
     # Compute the right hand side R = ∇⋅U
     ArrayType = array_type(arch)
@@ -45,15 +44,15 @@ function random_divergence_free_source_term(arch, grid)
     set!(Rv, rand(Nx, Ny, Nz))
     set!(Rw, zeros(Nx, Ny, Nz))
 
-    fill_halo_regions!(Ru, arch, nothing, nothing)
-    fill_halo_regions!(Rv, arch, nothing, nothing)
-    fill_halo_regions!(Rw, arch, nothing, nothing)
+    fill_halo_regions!(Ru)
+    fill_halo_regions!(Rv)
+    fill_halo_regions!(Rw)
 
     event = launch!(arch, grid, :xy, _compute_w_from_continuity!, U, grid,
                     dependencies=Event(device(arch)))
     wait(device(arch), event)
 
-    fill_halo_regions!(Rw, arch, nothing, nothing)
+    fill_halo_regions!(Rw)
 
     # Compute the right hand side R = ∇⋅U
     ArrayType = array_type(arch)

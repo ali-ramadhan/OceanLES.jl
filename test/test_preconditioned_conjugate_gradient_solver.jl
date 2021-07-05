@@ -26,7 +26,7 @@ function run_poisson_equation_test(arch, grid)
     # Initialize zero-mean "truth" solution with random numbers
     set!(ϕ_truth, (x, y, z) -> rand())
     parent(ϕ_truth) .-= mean(ϕ_truth)
-    fill_halo_regions!(ϕ_truth, arch)
+    fill_halo_regions!(ϕ_truth)
 
     # Calculate Laplacian of "truth"
     ∇²ϕ = r = Field(Center, Center, Center, arch, grid)

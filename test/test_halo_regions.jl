@@ -28,7 +28,7 @@ function halo_regions_correctly_filled(arch, FT, Nx, Ny, Nz)
     field = CenterField(arch, grid)
 
     set!(field, rand(FT, Nx, Ny, Nz))
-    fill_halo_regions!(field, arch)
+    fill_halo_regions!(field)
 
     Hx, Hy, Hz = grid.Hx, grid.Hy, grid.Hz
     data = field.data

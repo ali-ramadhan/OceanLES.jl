@@ -19,7 +19,7 @@
         @test all(c .== 4)
 
         # Halo regions
-        fill_halo_regions!(c, arch) # Does not happen by default in broadcasting now
+        fill_halo_regions!(c)
         @test c[1, 1, 0] == 4
         @test c[1, 1, Nz+1] == 4
 
@@ -29,7 +29,7 @@
         a2 = CenterField(arch, three_point_grid)
         b2 = ZFaceField(arch, three_point_grid)
         b2 .= 1
-        fill_halo_regions!(b2, arch) # sets b2[1, 1, 1] = b[1, 1, 4] = 0
+        fill_halo_regions!(b2) # sets b2[1, 1, 1] = b[1, 1, 4] = 0
 
         @test b2[1, 1, 1] == 0
         @test b2[1, 1, 2] == 1

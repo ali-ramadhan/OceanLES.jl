@@ -38,7 +38,7 @@ for arch in archs
             end
         end
 
-        fill_halo_regions!(field, arch)
+        fill_halo_regions!(field)
 
         CUDA.allowscalar(true)
 
@@ -402,7 +402,7 @@ for arch in archs
             end
         end
 
-        fill_horizontal_velocity_halos!(u_field, v_field, arch)
+        fill_horizontal_velocity_halos!(u_field, v_field)
 
         CUDA.allowscalar(true)
 

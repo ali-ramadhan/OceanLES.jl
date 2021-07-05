@@ -193,6 +193,9 @@ for LX in (:Center, :Face)
         LXe = @eval $LX
         LYe = @eval $LY
 
+        Δx_function = Symbol(:Δx, location_code_xy(LXe, LYe))
+        Δy_function = Symbol(:Δy, location_code_xy(LXe, LYe))
+
         Ax_function = Symbol(:Ax, location_code(LXe, LYe, Center()))
         Ay_function = Symbol(:Ay, location_code(LXe, LYe, Center()))
         Az_function = Symbol(:Az, location_code_xy(LXe, LYe))
@@ -201,9 +204,15 @@ for LX in (:Center, :Face)
             Az(i, j, k, grid, ::$LX, ::$LY, LZ) = $Az_function(i, j, k, grid)
             Ax(i, j, k, grid, ::$LX, ::$LY, ::Center) = $Ax_function(i, j, k, grid)
             Ay(i, j, k, grid, ::$LX, ::$LY, ::Center) = $Ay_function(i, j, k, grid)
+
+            Δx(i, j, k, grid, ::$LX, ::$LY, LZ) = $Δx_function(i, j, k, grid)
+            Δy(i, j, k, grid, ::$LX, ::$LY, LZ) = $Δy_function(i, j, k, grid)
         end
     end
 end
+
+Δz(i, j, k, grid, LX, LY, ::Center) = Δzᵃᵃᶜ(i, j, k, grid)
+Δz(i, j, k, grid, LX, LY, ::Face)   = Δzᵃᵃᶠ(i, j, k, grid)
 
 Ax(i, j, k, grid, ::Face, ::Center, ::Face) = Axᶠᶜᶠ(i, j, k, grid)
 Ay(i, j, k, grid, ::Center, ::Face, ::Face) = Ayᶜᶠᶠ(i, j, k, grid)

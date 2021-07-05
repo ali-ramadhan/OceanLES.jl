@@ -15,14 +15,14 @@ end
 end
 
 function compute_∇²!(∇²ϕ, ϕ, arch, grid)
-    fill_halo_regions!(ϕ, arch)
+    fill_halo_regions!(ϕ)
     child_arch = child_architecture(arch)
 
     event = launch!(child_arch, grid, :xyz, ∇²!, ∇²ϕ, grid, ϕ, dependencies=Event(device(child_arch)))
 
     wait(device(child_arch), event)
 
-    fill_halo_regions!(∇²ϕ, arch)
+    fill_halo_regions!(∇²ϕ)
 
     return nothing
 end

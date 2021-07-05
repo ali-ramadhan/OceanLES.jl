@@ -14,7 +14,7 @@ function implicit_free_surface_linear_operation!(L_ηⁿ⁺¹, ηⁿ⁺¹, ∫�
     grid = L_ηⁿ⁺¹.grid
     arch = architecture(L_ηⁿ⁺¹)
 
-    fill_halo_regions!(ηⁿ⁺¹, arch)
+    fill_halo_regions!(ηⁿ⁺¹)
 
     event = launch!(arch, grid, :xy, _implicit_free_surface_linear_operation!,
                     L_ηⁿ⁺¹, grid,  ηⁿ⁺¹, ∫ᶻ_Axᶠᶜᶜ, ∫ᶻ_Ayᶜᶠᶜ, g, Δt,
@@ -22,7 +22,7 @@ function implicit_free_surface_linear_operation!(L_ηⁿ⁺¹, ηⁿ⁺¹, ∫�
 
     wait(device(arch), event)
 
-    fill_halo_regions!(L_ηⁿ⁺¹, arch)
+    fill_halo_regions!(L_ηⁿ⁺¹)
 
     return nothing
 end

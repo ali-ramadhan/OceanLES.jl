@@ -24,7 +24,7 @@ using KernelAbstractions
 
 using Oceananigans.Architectures: device
 using Oceananigans.Utils: work_layout, launch!
-using Oceananigans.Operators: Δx, Δy, Ax, Ay, Az, volume, ΔzF
+using Oceananigans.Operators: Δx, Δy, Δz, Ax, Ay, Az, volume
 using Oceananigans.Grids
 
 include("boundary_condition_types.jl")

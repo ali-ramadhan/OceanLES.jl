@@ -228,7 +228,12 @@ nodes(ψ::AbstractField; kwargs...) = nodes(location(ψ), ψ.grid; kwargs...)
 ##### fill_halo_regions!
 #####
 
-fill_halo_regions!(field::AbstractField, arch, args...) = fill_halo_regions!(field.data, field.boundary_conditions, arch, field.grid, args...)
+fill_halo_regions!(field::AbstractDataField, args...) = fill_halo_regions!(field.data,
+                                                                           field.boundary_conditions,
+                                                                           architecture(field),
+                                                                           field.grid,
+                                                                           location(field),
+                                                                           args...)
 
 #####
 ##### Field reductions

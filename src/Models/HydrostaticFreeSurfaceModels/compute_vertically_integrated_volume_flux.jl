@@ -11,7 +11,7 @@ function compute_vertically_integrated_volume_flux!(∫ᶻ_U, model, velocities_
 
     wait(device(model.architecture), velocities_update_event)
 
-    fill_halo_regions!(model.velocities, model.architecture, model.clock, fields(model))
+    fill_halo_regions!(model.velocities, model.clock, fields(model))
 
     event = launch!(model.architecture,
                     model.grid,
@@ -24,7 +24,7 @@ function compute_vertically_integrated_volume_flux!(∫ᶻ_U, model, velocities_
 
     wait(device(model.architecture), event)
 
-    fill_halo_regions!(∫ᶻ_U, model.architecture, model.clock, fields(model))
+    fill_halo_regions!(∫ᶻ_U, model.clock, fields(model))
 
     return nothing
 end

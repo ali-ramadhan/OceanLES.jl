@@ -1,5 +1,6 @@
 using Adapt
 
+using Oceananigans.BoundaryConditions: CoordinateBoundaryConditions
 import Oceananigans.BoundaryConditions: fill_halo_regions!
 
 #####
@@ -8,11 +9,15 @@ import Oceananigans.BoundaryConditions: fill_halo_regions!
 
 abstract type AbstractReducedField{X, Y, Z, A, G, T, N} <: AbstractDataField{X, Y, Z, A, G, T, 3} end
 
+fill_halo_regions!(field::AbstractReducedField, args...) = fill_halo_regions!(field.data,
+                                                                              field.boundary_conditions,
+                                                                              architecture(field),
+                                                                              field.grid,
+                                                                              location(field),
+                                                                              args...;
+                                                                              reduced_dimensions=field.dims)
+
 const ARF = AbstractReducedField
-
-fill_halo_regions!(field::AbstractReducedField, arch, args...) =
-    fill_halo_regions!(field.data, field.boundary_conditions, arch, field.grid, args...; reduced_dimensions=field.dims)
-
 const DimsType = NTuple{N, Int} where N
 
 function validate_reduced_dims(dims)
@@ -117,3 +122,4 @@ reduced_location(loc; dims) = Tuple(i ∈ dims ? Nothing : loc[i] for i in 1:3)
 
 Adapt.adapt_structure(to, reduced_field::ReducedField{X, Y, Z}) where {X, Y, Z} =
     ReducedField{X, Y, Z}(adapt(to, reduced_field.data), nothing, adapt(to, reduced_field.grid), reduced_field.dims, nothing)
+

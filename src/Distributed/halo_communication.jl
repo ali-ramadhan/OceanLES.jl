@@ -14,9 +14,12 @@ sides  = (:west, :east, :south, :north, :top, :bottom)
 side_id = Dict(side => n for (n, side) in enumerate(sides))
 
 opposite_side = Dict(
-    :west => :east, :east => :west,
-    :south => :north, :north => :south,
-    :bottom => :top, :top => :bottom
+    :west   => :east,
+    :east   => :west,
+    :south  => :north,
+    :north  => :south,
+    :bottom => :top,
+    :top    => :bottom
 )
 
 # Define functions that return unique send and recv MPI tags for each side.
@@ -52,16 +55,13 @@ end
 ##### Filling halos for halo communication boundary conditions
 #####
 
-fill_halo_regions!(field::AbstractField{LX, LY, LZ}, arch::AbstractMultiArchitecture, args...) where {LX, LY, LZ} =
-    fill_halo_regions!(field.data, field.boundary_conditions, arch, field.grid, (LX, LY, LZ), args...)
-
-function fill_halo_regions!(c::OffsetArray, bcs, arch::AbstractMultiArchitecture, grid, c_location, args...)
+function fill_halo_regions!(c::OffsetArray, bcs, arch::AbstractMultiArchitecture, grid, c_location, args...; kwargs...)
 
     barrier = Event(device(child_architecture(arch)))
 
-    x_events_requests = fill_west_and_east_halos!(c, bcs.west, bcs.east, arch, barrier, grid, c_location, args...)
-    y_events_requests = fill_south_and_north_halos!(c, bcs.south, bcs.north, arch, barrier, grid, c_location, args...)
-    z_events_requests = fill_bottom_and_top_halos!(c, bcs.bottom, bcs.top, arch, barrier, grid, c_location, args...)
+    x_events_requests =   fill_west_and_east_halos!(c, bcs.west,   bcs.east,  arch, barrier, grid, c_location, args...; kwargs...)
+    y_events_requests = fill_south_and_north_halos!(c, bcs.south,  bcs.north, arch, barrier, grid, c_location, args...; kwargs...)
+    z_events_requests =  fill_bottom_and_top_halos!(c, bcs.bottom, bcs.top,   arch, barrier, grid, c_location, args...; kwargs...)
 
     events_and_requests = [x_events_requests..., y_events_requests..., z_events_requests...]
 
@@ -87,9 +87,9 @@ for (side, opposite_side) in zip([:west, :south, :bottom], [:east, :north, :top]
     fill_opposite_side_halo! = Symbol("fill_$(opposite_side)_halo!")
 
     @eval begin
-        function $fill_both_halos!(c, bc_side, bc_opposite_side, arch, barrier, grid, args...)
-            event_side = $fill_side_halo!(c, bc_side, child_architecture(arch), barrier, grid, args...)
-            event_opposite_side = $fill_opposite_side_halo!(c, bc_opposite_side, child_architecture(arch), barrier, grid, args...)
+        function $fill_both_halos!(c, bc_side, bc_opposite_side, arch, barrier, grid, args...; kwargs...)
+            event_side = $fill_side_halo!(c, bc_side, child_architecture(arch), barrier, grid, args...; kwargs...)
+            event_opposite_side = $fill_opposite_side_halo!(c, bc_opposite_side, child_architecture(arch), barrier, grid, args...; kwargs...)
             return event_side, event_opposite_side
         end
     end
@@ -109,7 +109,7 @@ for (side, opposite_side) in zip([:west, :south, :bottom], [:east, :north, :top]
     recv_and_fill_opposite_side_halo! = Symbol("recv_and_fill_$(opposite_side)_halo!")
 
     @eval begin
-        function $fill_both_halos!(c, bc_side::HaloCommunicationBC, bc_opposite_side::HaloCommunicationBC, arch, barrier, grid, c_location, args...)
+        function $fill_both_halos!(c, bc_side::HaloCommunicationBC, bc_opposite_side::HaloCommunicationBC, arch, barrier, grid, c_location, args...; kwargs...)
             @assert bc_side.condition.from == bc_opposite_side.condition.from  # Extra protection in case of bugs
             local_rank = bc_side.condition.from
 

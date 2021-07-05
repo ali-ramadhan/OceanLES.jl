@@ -350,8 +350,10 @@ function test_triply_periodic_halo_communication_with_411_ranks(halo)
     model = DistributedIncompressibleModel(architecture=arch, grid=full_grid, pressure_solver=nothing)
 
     for field in merge(fields(model), model.pressures)
+        @test architecture(field) isa AbstractMultiArchitecture
+
         interior(field) .= arch.local_rank
-        fill_halo_regions!(field, arch)
+        fill_halo_regions!(field)
 
         @test all(east_halo(field, include_corners=false) .== arch.connectivity.east)
         @test all(west_halo(field, include_corners=false) .== arch.connectivity.west)
@@ -375,7 +377,7 @@ function test_triply_periodic_halo_communication_with_141_ranks(halo)
 
     for field in merge(fields(model), model.pressures)
         interior(field) .= arch.local_rank
-        fill_halo_regions!(field, arch)
+        fill_halo_regions!(field)
 
         @test all(north_halo(field, include_corners=false) .== arch.connectivity.north)
         @test all(south_halo(field, include_corners=false) .== arch.connectivity.south)
@@ -398,7 +400,7 @@ function test_triply_periodic_halo_communication_with_114_ranks(halo)
 
     for field in merge(fields(model), model.pressures)
         interior(field) .= arch.local_rank
-        fill_halo_regions!(field, arch)
+        fill_halo_regions!(field)
 
         @test all(top_halo(field, include_corners=false) .== arch.connectivity.top)
         @test all(bottom_halo(field, include_corners=false) .== arch.connectivity.bottom)
@@ -421,7 +423,7 @@ function test_triply_periodic_halo_communication_with_221_ranks(halo)
 
     for field in merge(fields(model), model.pressures)
         interior(field) .= arch.local_rank
-        fill_halo_regions!(field, arch)
+        fill_halo_regions!(field)
 
         @test all(east_halo(field, include_corners=false) .== arch.connectivity.east)
         @test all(west_halo(field, include_corners=false) .== arch.connectivity.west)
