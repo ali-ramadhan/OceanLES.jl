@@ -8,7 +8,6 @@ using Glob
 
 using Oceananigans
 using Oceananigans.Operators
-using Oceananigans.Grids
 using Oceananigans.Diagnostics
 using Oceananigans.OutputWriters
 using Oceananigans.TurbulenceClosures
@@ -43,7 +42,8 @@ examples = [
     "langmuir_turbulence.jl",
     "eady_turbulence.jl",
     "kelvin_helmholtz_instability.jl",
-    "shallow_water_Bickley_jet.jl"
+    "shallow_water_Bickley_jet.jl",
+    "horizontal_convection.jl"
 ]
 
 for example in examples
@@ -65,7 +65,8 @@ example_pages = [
     "Langmuir turbulence"                => "generated/langmuir_turbulence.md",
     "Eady turbulence"                    => "generated/eady_turbulence.md",
     "Kelvin-Helmholtz instability"       => "generated/kelvin_helmholtz_instability.md",
-    "Shallow water Bickley jet"          => "generated/shallow_water_Bickley_jet.md"
+    "Shallow water Bickley jet"          => "generated/shallow_water_Bickley_jet.md",
+    "Horizontal convection"              => "generated/horizontal_convection.md"
  ]
 
 model_setup_pages = [
