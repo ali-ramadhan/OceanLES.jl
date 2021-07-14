@@ -3,11 +3,6 @@ using Oceananigans: AbstractModel, AbstractOutputWriter, AbstractDiagnostic
 using Oceananigans.Architectures: AbstractArchitecture, CPU
 using Oceananigans.Advection: CenteredSecondOrder
 using Oceananigans.BoundaryConditions: regularize_field_boundary_conditions
-
-using Oceananigans.BoundaryConditions: UVelocityBoundaryConditions,
-                                       VVelocityBoundaryConditions,
-                                       TracerBoundaryConditions
-
 using Oceananigans.Fields: Field, tracernames, TracerFields, XFaceField, YFaceField, CenterField
 using Oceananigans.Forcings: model_forcing
 using Oceananigans.Grids: with_halo, topology, inflate_halo_size, halo_size, Flat
@@ -17,23 +12,19 @@ using Oceananigans.Utils: tupleit
 
 function ShallowWaterTendencyFields(arch, grid, tracer_names)
 
-    uh = XFaceField(arch, grid, UVelocityBoundaryConditions(grid))
-    vh = YFaceField(arch, grid, VVelocityBoundaryConditions(grid))
-    h  = CenterField(arch,  grid, TracerBoundaryConditions(grid))
+    uh = XFaceField(arch, grid)
+    vh = YFaceField(arch, grid)
+    h = CenterField(arch, grid)
+
     tracers = TracerFields(tracer_names, arch, grid)
 
     return merge((uh=uh, vh=vh, h=h), tracers)
 end
 
 function ShallowWaterSolutionFields(arch, grid, bcs)
-
-    uh_bcs = :uh ∈ keys(bcs) ? bcs.uh : UVelocityBoundaryConditions(grid)
-    vh_bcs = :vh ∈ keys(bcs) ? bcs.vh : VVelocityBoundaryConditions(grid)
-    h_bcs  = :h  ∈ keys(bcs) ? bcs.h  : TracerBoundaryConditions(grid)
-
-    uh = XFaceField(arch, grid, uh_bcs)
-    vh = YFaceField(arch, grid, vh_bcs)
-    h = CenterField(arch, grid, h_bcs)
+    uh = XFaceField(arch, grid, bcs.uh)
+    vh = YFaceField(arch, grid, bcs.vh)
+    h = CenterField(arch, grid, bcs.h)
 
     return (uh=uh, vh=vh, h=h)
 end
@@ -114,8 +105,11 @@ function ShallowWaterModel(;
     Hx, Hy, Hz = inflate_halo_size(grid.Hx, grid.Hy, 0, topology(grid), advection, closure)
     grid = with_halo((Hx, Hy, 0), grid)
 
-    model_field_names = (:uh, :vh, :h, tracers...)
-    boundary_conditions = regularize_field_boundary_conditions(boundary_conditions, grid, model_field_names)
+    prognostic_field_names = (:uh, :vh, :h, tracers...)
+    default_boundary_conditions = NamedTuple{prognostic_field_names}(Tuple(FieldBoundaryConditions() for name in prognostic_field_names))
+    boundary_conditions = merge(default_boundary_conditions, boundary_conditions)
+
+    boundary_conditions = regularize_field_boundary_conditions(boundary_conditions, grid, prognostic_field_names)
 
     solution = ShallowWaterSolutionFields(architecture, grid, boundary_conditions)
     tracers  = TracerFields(tracers, architecture, grid, boundary_conditions)

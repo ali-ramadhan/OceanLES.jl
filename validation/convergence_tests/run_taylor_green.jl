@@ -1,3 +1,5 @@
+pushfirst!(LOAD_PATH, joinpath("..", ".."))
+
 using CUDA
 using Oceananigans
 

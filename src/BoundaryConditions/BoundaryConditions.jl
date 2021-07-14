@@ -2,21 +2,11 @@ module BoundaryConditions
 
 export
     BCType, Flux, Gradient, Value, Open,
-
     BoundaryCondition, getbc, setbc!,
-
     PeriodicBoundaryCondition, OpenBoundaryCondition, NoFluxBoundaryCondition,
     FluxBoundaryCondition, ValueBoundaryCondition, GradientBoundaryCondition,
-
-    CoordinateBoundaryConditions,
-
-    FieldBoundaryConditions, UVelocityBoundaryConditions, VVelocityBoundaryConditions,
-    WVelocityBoundaryConditions, TracerBoundaryConditions, PressureBoundaryConditions,
-
-    DiffusivityBoundaryConditions,
-
+    FieldBoundaryConditions,
     apply_x_bcs!, apply_y_bcs!, apply_z_bcs!,
-
     fill_halo_regions!
 
 using CUDA
@@ -31,7 +21,6 @@ include("boundary_condition_classifications.jl")
 include("boundary_condition.jl")
 include("discrete_boundary_function.jl")
 include("continuous_boundary_function.jl")
-include("coordinate_boundary_conditions.jl")
 include("field_boundary_conditions.jl")
 include("show_boundary_conditions.jl")
 

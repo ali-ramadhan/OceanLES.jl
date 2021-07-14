@@ -210,7 +210,8 @@ end
 @inline Δᶠ(i, j, k, grid::RegularRectilinearGrid, ::TwoDimensionalLeith) = sqrt(grid.Δx * grid.Δy)
 
 function DiffusivityFields(arch, grid, tracer_names, bcs, ::L2D)
-    νₑ_bcs = :νₑ ∈ keys(bcs) ? bcs[:νₑ] : DiffusivityBoundaryConditions(grid)
-    νₑ = CenterField(arch, grid, νₑ_bcs)
-    return (νₑ = νₑ,)
+    default_eddy_viscosity_bcs = (; νₑ = FieldBoundaryConditions(grid, (Center, Center, Center)))
+    bcs = merge(default_eddy_viscosity_bcs, bcs)
+    νₑ = CenterField(arch, grid, bcs.νₑ)
+    return (; νₑ)
 end

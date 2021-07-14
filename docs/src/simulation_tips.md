@@ -73,19 +73,26 @@ in GPU simulations by following a few simple principles.
 ### Variables that need to be used in GPU computations need to be defined as constants
 
 Any global variable that needs to be accessed by the GPU needs to be a constant or the simulation
-will crash. This includes any variables used in forcing functions and boundary conditions. For
-example, if you define a boundary condition like the example below and run your simulation on a GPU
-you'll get an error.
+will crash. This includes any variables that are referenced as global variables in functions
+used for forcing of boundary conditions. For example,
 
 ```julia
-dTdz = 0.01 # K m⁻¹
-T_bcs = TracerBoundaryConditions(grid,
-                                 bottom = GradientBoundaryCondition(dTdz))
+T₀ = 20 # ᵒC
+surface_temperature(x, y, t) = T₀ * sin(2π / 86400 * t)
+T_bcs = FieldBoundaryConditions(bottom = GradientBoundaryCondition(surface_temperature))
 ```
 
-However, if you define `dTdz` as a constant by replacing the first line with `const dTdz = 0.01`,
-then (provided everything else is done properly) your run will be successful.
+will throw an error if run on the GPU (and will run more slowly than it should on the CPU).
+Replacing the first line above with
 
+```julia
+const T₀ = 20 # ᵒC
+```
+
+fixes the issue by indicating to the compiler that `T₀` will not change.
+
+Note that the _literal_ `2π / 86400` is not an issue -- it's only the
+_variable_ `T₀` that must be declared `const`.
 
 ### Complex diagnostics using `ComputedField`s may not work on GPUs
 

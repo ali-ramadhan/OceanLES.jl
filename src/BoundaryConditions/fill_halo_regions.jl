@@ -7,7 +7,7 @@ using OffsetArrays: OffsetArray
 fill_halo_regions!(::Nothing, args...) = []
 
 """
-    fill_halo_regions!(fields, arch)
+    fill_halo_regions!(fields::Union{Tuple, NamedTuple}, arch, args...)
 
 Fill halo regions for each field in the tuple `fields` according to their boundary
 conditions, possibly recursing into `fields` if it is a nested tuple-of-tuples.

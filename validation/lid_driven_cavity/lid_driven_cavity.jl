@@ -9,15 +9,11 @@ function simulate_lid_driven_cavity(; Re, N, end_time)
     domain = (y=(0, 1), z=(0, 1))
     grid = RegularRectilinearGrid(topology=topology, size=(N, N); domain...)
 
-    v_bcs = VVelocityBoundaryConditions(grid,
-           top = ValueBoundaryCondition(1),
-        bottom = ValueBoundaryCondition(0)
-    )
+    v_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(1),
+                                    bottom = ValueBoundaryCondition(0))
 
-    w_bcs = WVelocityBoundaryConditions(grid,
-        north = ValueBoundaryCondition(0),
-        south = ValueBoundaryCondition(0)
-    )
+    w_bcs = FieldBoundaryConditions(north = ValueBoundaryCondition(0),
+                                    south = ValueBoundaryCondition(0))
 
     model = IncompressibleModel(
                        grid = grid,

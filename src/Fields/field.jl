@@ -1,24 +1,24 @@
 using Adapt
 
-struct Field{X, Y, Z, A, D, G, T, B} <: AbstractDataField{X, Y, Z, A, G, T, 3}
+struct Field{LX, LY, LZ, A, D, G, T, B} <: AbstractDataField{LX, LY, LZ, A, G, T, 3}
                    data :: D
            architecture :: A
                    grid :: G
     boundary_conditions :: B
 
-    function Field{X, Y, Z}(data::D, arch::A, grid::G, bcs::B) where {X, Y, Z, D, A, G, B}
+    function Field{LX, LY, LZ}(data::D, arch::A, grid::G, bcs::B) where {LX, LY, LZ, D, A, G, B}
         T = eltype(grid)
-        return new{X, Y, Z, A, D, G, T, B}(data, arch, grid, bcs)
+        return new{LX, LY, LZ, A, D, G, T, B}(data, arch, grid, bcs)
     end
 end
 
 """
-    Field(X, Y, Z, [arch = CPU()], grid,
-          [ bcs = FieldBoundaryConditions(grid, (X, Y, Z)),
-           data = new_data(eltype(grid), arch, grid, (X, Y, Z))])
+    Field(LX, LY, LZ, [arch = CPU()], grid,
+          [ bcs = FieldBoundaryConditions(grid, (LX, LY, LZ)),
+           data = new_data(eltype(grid), arch, grid, (LX, LY, LZ))])
 
 Construct a `Field` on `grid` with `data` on architecture `arch` with
-boundary conditions `bcs`. Each of `(X, Y, Z)` is either `Center` or `Face` and determines
+boundary conditions `bcs`. Each of `(LX, LY, LZ)` is either `Center` or `Face` and determines
 the field's location in `(x, y, z)`.
 
 Example
@@ -31,25 +31,25 @@ julia> ω = Field(Face, Face, Center, CPU(), RegularRectilinearGrid(size=(1, 1, 
 Field located at (Face, Face, Center)
 ├── data: OffsetArrays.OffsetArray{Float64, 3, Array{Float64, 3}}, size: (1, 1, 1)
 ├── grid: RegularRectilinearGrid{Float64, Periodic, Periodic, Bounded}(Nx=1, Ny=1, Nz=1)
-└── boundary conditions: x=(west=Periodic, east=Periodic), y=(south=Periodic, north=Periodic), z=(bottom=ZeroFlux, top=ZeroFlux)
+└── boundary conditions: west=Periodic, east=Periodic, south=Periodic, north=Periodic, bottom=ZeroFlux, top=ZeroFlux, immersed=ZeroFlux
 ```
 """
-function Field(X, Y, Z,
+function Field(LX, LY, LZ,
                arch::AbstractArchitecture,
                grid::AbstractGrid,
-               bcs = FieldBoundaryConditions(grid, (X, Y, Z)),
-               data = new_data(eltype(grid), arch, grid, (X, Y, Z)))
+               bcs = FieldBoundaryConditions(grid, (LX, LY, LZ)),
+               data = new_data(eltype(grid), arch, grid, (LX, LY, LZ)))
 
-    validate_field_data(X, Y, Z, data, grid)
+    validate_field_data(LX, LY, LZ, data, grid)
 
-    return Field{X, Y, Z}(data, arch, grid, bcs)
+    return Field{LX, LY, LZ}(data, arch, grid, bcs)
 end
 
 # Default CPU architecture
-Field(X, Y, Z, grid::AbstractGrid, args...) = Field(X, Y, Z, CPU(), grid, args...)
+Field(LX, LY, LZ, grid::AbstractGrid, args...) = Field(LX, LY, LZ, CPU(), grid, args...)
 
 # Canonical `similar` for AbstractField (doesn't transfer boundary conditions)
-Base.similar(f::AbstractField{X, Y, Z, Arch}) where {X, Y, Z, Arch} = Field(X, Y, Z, Arch(), f.grid)
+Base.similar(f::AbstractField{LX, LY, LZ, Arch}) where {LX, LY, LZ, Arch} = Field(LX, LY, LZ, Arch(), f.grid)
 
 # Type "destantiation": convert Face() to Face and Center() to Center if needed.
 destantiate(X) = typeof(X)
@@ -68,68 +68,36 @@ Field(L::Tuple, args...) = Field(destantiate.(L)..., args...)
 #####
 
 """
-    CenterField([arch=CPU()], grid
-                bcs = TracerBoundaryConditions(grid),
-                data = new_data(eltype(grid), arch, grid, (Center, Center, Center)))
+    CenterField([arch=CPU()], grid, args...)
 
-Return a `Field{Center, Center, Center}` on architecture `arch` and `grid` containing `data`
-with field boundary conditions `bcs`.
+Returns `Field{Center, Center, Center}` on `arch`itecture and `grid`.
+Additional arguments are passed to the `Field` constructor.
 """
-function CenterField(arch::AbstractArchitecture,
-                     grid,
-                     bcs = TracerBoundaryConditions(grid),
-                     data = new_data(eltype(grid), arch, grid, (Center, Center, Center)))
-
-    return Field(Center, Center, Center, arch, grid, bcs, data)
-end
+CenterField(arch::AbstractArchitecture, grid, args...) = Field(Center, Center, Center, arch, grid, args...)
 
 """
-    XFaceField([arch=CPU()], grid
-               bcs = UVelocityBoundaryConditions(grid),
-               data = new_data(eltype(grid), arch, grid, (Face, Center, Center)))
+    XFaceField([arch=CPU()], grid, args...)
 
-Return a `Field{Face, Center, Center}` on architecture `arch` and `grid` containing `data`
-with field boundary conditions `bcs`.
+Returns `Field{Face, Center, Center}` on `arch`itecture and `grid`.
+Additional arguments are passed to the `Field` constructor.
 """
-function XFaceField(arch::AbstractArchitecture,
-                    grid,
-                    bcs = UVelocityBoundaryConditions(grid),
-                    data = new_data(eltype(grid), arch, grid, (Face, Center, Center)))
-
-    return Field(Face, Center, Center, arch, grid, bcs, data)
-end
+XFaceField(arch::AbstractArchitecture, args...) = Field(Face, Center, Center, arch, args...)
 
 """
-    YFaceField([arch=CPU()], grid,
-               bcs = VVelocityBoundaryConditions(grid),
-               data = new_data(eltype(grid), arch, grid, (Center, Face, Center)))
+    YFaceField([arch=CPU()], grid, args...)
 
-Return a `Field{Center, Face, Center}` on architecture `arch` and `grid` containing `data`
-with field boundary conditions `bcs`.
+Returns `Field{Center, Face, Center}` on `arch`itecture and `grid`.
+Additional arguments are passed to the `Field` constructor.
 """
-function YFaceField(arch::AbstractArchitecture,
-                    grid,
-                    bcs = VVelocityBoundaryConditions(grid),
-                    data = new_data(eltype(grid), arch, grid, (Center, Face, Center)))
-
-    return Field(Center, Face, Center, arch, grid, bcs, data)
-end
+YFaceField(arch::AbstractArchitecture, args...) = Field(Center, Face, Center, arch, args...)
 
 """
-    ZFaceField([arch=CPU()], grid
-               bcs = WVelocityBoundaryConditions(grid),
-               data = new_data(eltype(grid), arch, grid, (Center, Center, Face)))
+    ZFaceField([arch=CPU()], grid, args...)
 
-Return a `Field{Center, Center, Face}` on architecture `arch` and `grid` containing `data`
-with field boundary conditions `bcs`.
+Returns `Field{Center, Center, Face}` on `arch`itecture and `grid`.
+Additional arguments are passed to the `Field` constructor.
 """
-function ZFaceField(arch::AbstractArchitecture,
-                    grid,
-                    bcs = WVelocityBoundaryConditions(grid),
-                    data = new_data(eltype(grid), arch, grid, (Center, Center, Face)))
-
-    return Field(Center, Center, Face, arch, grid, bcs, data)
-end
+ZFaceField(arch::AbstractArchitecture, args...) = Field(Center, Center, Face, arch, args...)
 
 # Default CPU architectures...
 CenterField(grid::AbstractGrid, args...) = CenterField(CPU(), grid, args...)

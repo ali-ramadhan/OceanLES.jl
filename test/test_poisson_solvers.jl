@@ -1,6 +1,7 @@
 using Oceananigans.Solvers: solve_for_pressure!, solve_poisson_equation!, set_source_term!
 using Oceananigans.Solvers: poisson_eigenvalues
 using Oceananigans.Models.HydrostaticFreeSurfaceModels: _compute_w_from_continuity!
+using Oceananigans.BoundaryConditions: regularize_field_boundary_conditions
 
 function poisson_solver_instantiates(arch, grid, planner_flag)
     solver = FFTBasedPoissonSolver(arch, grid, planner_flag)
@@ -8,9 +9,14 @@ function poisson_solver_instantiates(arch, grid, planner_flag)
 end
 
 function random_divergent_source_term(arch, grid)
-    Ru = CenterField(arch, grid, UVelocityBoundaryConditions(grid))
-    Rv = CenterField(arch, grid, VVelocityBoundaryConditions(grid))
-    Rw = CenterField(arch, grid, WVelocityBoundaryConditions(grid))
+    default_bcs = FieldBoundaryConditions()
+    u_bcs = regularize_field_boundary_conditions(default_bcs, grid, :u)
+    v_bcs = regularize_field_boundary_conditions(default_bcs, grid, :v)
+    w_bcs = regularize_field_boundary_conditions(default_bcs, grid, :w)
+
+    Ru = CenterField(arch, grid, u_bcs)
+    Rv = CenterField(arch, grid, v_bcs)
+    Rw = CenterField(arch, grid, w_bcs)
     U = (u=Ru, v=Rv, w=Rw)
 
     Nx, Ny, Nz = size(grid)
@@ -33,10 +39,15 @@ function random_divergent_source_term(arch, grid)
 end
 
 function random_divergence_free_source_term(arch, grid)
+    default_bcs = FieldBoundaryConditions()
+    u_bcs = regularize_field_boundary_conditions(default_bcs, grid, :u)
+    v_bcs = regularize_field_boundary_conditions(default_bcs, grid, :v)
+    w_bcs = regularize_field_boundary_conditions(default_bcs, grid, :w)
+
     # Random right hand side
-    Ru = CenterField(arch, grid, UVelocityBoundaryConditions(grid))
-    Rv = CenterField(arch, grid, VVelocityBoundaryConditions(grid))
-    Rw = CenterField(arch, grid, WVelocityBoundaryConditions(grid))
+    Ru = CenterField(arch, grid, u_bcs)
+    Rv = CenterField(arch, grid, v_bcs)
+    Rw = CenterField(arch, grid, w_bcs)
     U = (u=Ru, v=Rv, w=Rw)
 
     Nx, Ny, Nz = size(grid)
@@ -75,7 +86,7 @@ function divergence_free_poisson_solution(arch, grid, planner_flag=FFTW.MEASURE)
     solver = FFTBasedPoissonSolver(arch, grid, planner_flag)
     R, U = random_divergent_source_term(arch, grid)
 
-    p_bcs = PressureBoundaryConditions(grid)
+    p_bcs = FieldBoundaryConditions(grid, (Center, Center, Center))
     ϕ   = CenterField(arch, grid, p_bcs)  # "kinematic pressure"
     ∇²ϕ = CenterField(arch, grid, p_bcs)
 
@@ -149,7 +160,7 @@ function vertically_stretched_poisson_solver_correct_answer(FT, arch, topo, Nx, 
     vs_grid = VerticallyStretchedRectilinearGrid(FT; architecture=arch, topology=topo, size=sz, z_faces=zF, xy_intervals...)
     solver = FourierTridiagonalPoissonSolver(arch, vs_grid)
 
-    p_bcs = PressureBoundaryConditions(vs_grid)
+    p_bcs = FieldBoundaryConditions(vs_grid, (Center, Center, Center))
     ϕ   = CenterField(arch, vs_grid, p_bcs)  # "kinematic pressure"
     ∇²ϕ = CenterField(arch, vs_grid, p_bcs)
 

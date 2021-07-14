@@ -167,8 +167,8 @@ cᴰ = 1e-4 # quadratic drag coefficient
 drag_bc_u = FluxBoundaryCondition(drag_u, field_dependencies=(:u, :v), parameters=cᴰ)
 drag_bc_v = FluxBoundaryCondition(drag_v, field_dependencies=(:u, :v), parameters=cᴰ)
 
-u_bcs = UVelocityBoundaryConditions(grid, bottom = drag_bc_u)
-v_bcs = VVelocityBoundaryConditions(grid, bottom = drag_bc_v)
+u_bcs = FieldBoundaryConditions(bottom = drag_bc_u)
+v_bcs = FieldBoundaryConditions(bottom = drag_bc_v)
 
 # ## Turbulence closures
 #

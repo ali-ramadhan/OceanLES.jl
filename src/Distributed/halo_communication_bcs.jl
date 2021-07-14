@@ -1,13 +1,13 @@
 using Oceananigans.BoundaryConditions
 using Oceananigans.BoundaryConditions: AbstractBoundaryConditionClassification
 
-import Oceananigans.BoundaryConditions: bcclassification_str, print_condition
+import Oceananigans.BoundaryConditions: bc_str, print_condition
 
 struct HaloCommunication <: AbstractBoundaryConditionClassification end
 
 const HaloCommunicationBC = BoundaryCondition{<:HaloCommunication}
 
-bcclassification_str(::HaloCommunicationBC) = "HaloCommunication"
+bc_str(::HaloCommunicationBC) = "HaloCommunication"
 
 HaloCommunicationBoundaryCondition(val; kwargs...) = BoundaryCondition(HaloCommunication, val; kwargs...)
 
@@ -42,14 +42,13 @@ function inject_halo_communication_boundary_conditions(field_bcs, local_rank, co
     top_comm_bc = HaloCommunicationBoundaryCondition(top_comm_ranks)
     bottom_comm_bc = HaloCommunicationBoundaryCondition(bottom_comm_ranks)
 
-    x_bcs = CoordinateBoundaryConditions(isnothing(rank_west) ? field_bcs.west : west_comm_bc,
-                                         isnothing(rank_east) ? field_bcs.east : east_comm_bc)
+    west = isnothing(rank_west) ? field_bcs.west : west_comm_bc
+    east = isnothing(rank_east) ? field_bcs.east : east_comm_bc
+    south = isnothing(rank_south) ? field_bcs.south : south_comm_bc
+    north = isnothing(rank_north) ? field_bcs.north : north_comm_bc
+    bottom = isnothing(rank_bottom) ? field_bcs.bottom : bottom_comm_bc
+    top = isnothing(rank_top) ? field_bcs.top : top_comm_bc
+    immersed = field_bcs.immersed
 
-    y_bcs = CoordinateBoundaryConditions(isnothing(rank_south) ? field_bcs.south : south_comm_bc,
-                                         isnothing(rank_north) ? field_bcs.north : north_comm_bc)
-
-    z_bcs = CoordinateBoundaryConditions(isnothing(rank_bottom) ? field_bcs.bottom : bottom_comm_bc,
-                                         isnothing(rank_top) ? field_bcs.top : top_comm_bc)
-
-    return FieldBoundaryConditions(x_bcs, y_bcs, z_bcs)
+    return FieldBoundaryConditions(west, east, south, north, bottom, top, immersed)
 end

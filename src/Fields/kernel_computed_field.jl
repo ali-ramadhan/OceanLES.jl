@@ -13,7 +13,7 @@ struct KernelComputedField{X, Y, Z, A, S, D, G, T, K, B, F, P} <: AbstractDataFi
                    status :: S
 
     function KernelComputedField{X, Y, Z}(kernel::K, arch::A, grid::G;
-                                          boundary_conditions::B = ComputedFieldBoundaryConditions(grid, (X, Y, Z)),
+                                          boundary_conditions::B = FieldBoundaryConditions(grid, (X, Y, Z)),
                                            computed_dependencies = (),
                                                    parameters::P = nothing,
                                                          data::D = new_data(arch, grid, (X, Y, Z)),
@@ -35,7 +35,7 @@ end
 
 """
     KernelComputedField(X, Y, Z, kernel, model;
-                        boundary_conditions = ComputedFieldBoundaryConditions(grid, (X, Y, Z)),
+                        boundary_conditions = FieldBoundaryConditions(grid, (X, Y, Z)),
                         computed_dependencies = (),
                         parameters = nothing,
                         data = nothing,

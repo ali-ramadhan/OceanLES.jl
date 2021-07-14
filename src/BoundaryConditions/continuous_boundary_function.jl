@@ -4,7 +4,7 @@ using Oceananigans.Utils: tupleit, user_function_arguments
 import Oceananigans: location
 
 """
-    ContinuousBoundaryFunction{X, Y, Z, I, F, P, D, N, ℑ} <: Function
+    struct ContinuousBoundaryFunction{X, Y, Z, I, F, P, D, N, ℑ} <: Function
 
 A wrapper for the user-defined boundary condition function `func` at location
 `X, Y, Z`. `I` denotes the boundary-normal index (`I=1` at western boundaries,
@@ -21,49 +21,39 @@ struct ContinuousBoundaryFunction{X, Y, Z, I, F, P, D, N, ℑ} <: Function
      field_dependencies_interp :: ℑ
 
     """ Returns a location-less wrapper for `func`, `parameters`, and `field_dependencies`."""
-    function ContinuousBoundaryFunction(func, parameters, field_dependencies)
-
+    function ContinuousBoundaryFunction(func::F, parameters::P, field_dependencies) where {F, P}
         field_dependencies = tupleit(field_dependencies)
-
-        return new{Nothing, Nothing, Nothing, Nothing,
-                   typeof(func), typeof(parameters),
-                   typeof(field_dependencies), Nothing, Nothing}(func, parameters, field_dependencies, nothing, nothing)
+        D = typeof(field_dependencies)
+        return new{Nothing, Nothing, Nothing, Nothing, F, P, D, Nothing, Nothing}(func, parameters, field_dependencies, nothing, nothing)
     end
 
-    function ContinuousBoundaryFunction{X, Y, Z, I}(func, parameters, field_dependencies,
-                                                    field_dependencies_indices, field_dependencies_interp) where {X, Y, Z, I}
-        return new{X, Y, Z, I,
-                   typeof(func),
-                   typeof(parameters),
-                   typeof(field_dependencies),
-                   typeof(field_dependencies_indices),
-                   typeof(field_dependencies_interp)}(func,
-                                                      parameters,
-                                                      field_dependencies,
-                                                      field_dependencies_indices,
-                                                      field_dependencies_interp)
+    function ContinuousBoundaryFunction{X, Y, Z, I}(func::F,
+                                                    parameters::P,
+                                                    field_dependencies::D,
+                                                    field_dependencies_indices::N,
+                                                    field_dependencies_interp::ℑ) where {X, Y, Z, I, F, P, D, ℑ, N}
+
+        return new{X, Y, Z, I, F, P, D, N, ℑ}(func, parameters, field_dependencies, field_dependencies_indices, field_dependencies_interp)
     end
 end
 
-location(bc::ContinuousBoundaryFunction{X, Y, Z}) where {X, Y, Z} = X, Y, Z
+location(::ContinuousBoundaryFunction{X, Y, Z}) where {X, Y, Z} = X, Y, Z
 
 #####
 ##### "Regularization" for IncompressibleModel setup
 #####
 
-regularize_boundary_condition(bc, X, Y, Z, I, model_field_names) = bc # fallback
-
 """
     regularize_boundary_condition(bc::BoundaryCondition{C, <:ContinuousBoundaryFunction},
-                                  X, Y, Z, I, model_field_names) where C
+                                  topo, loc, dim, I, prognostic_field_names) where C
 
-Regularizes `bc.condition` for location `X, Y, Z`, boundary index `I`, and `model_field_names`,
+Regularizes `bc.condition` for location `loc`, boundary index `I`, and `prognostic_field_names`,
 returning `BoundaryCondition(C, regularized_condition)`.
 
 The regularization of `bc.condition::ContinuousBoundaryFunction` requries
 
-1. Setting the boundary location to `X, Y, Z`.
-   The boundary-normal direction is tagged with `Nothing` location.
+1. Setting the boundary location to `LX, LY, LZ`.
+   The location in the boundary-normal direction is `Nothing`.
 
 2. Setting the boundary-normal index `I` for indexing into `field_dependencies`.
    `I` is either `1` (for left boundaries) or
@@ -76,12 +66,16 @@ The regularization of `bc.condition::ContinuousBoundaryFunction` requries
    of the boundary.
 """
 function regularize_boundary_condition(bc::BoundaryCondition{C, <:ContinuousBoundaryFunction},
-                                       LX, LY, LZ, I, model_field_names) where C
+                                       topo, loc, dim, I, prognostic_field_names) where C
+
     boundary_func = bc.condition
+
+    # Set boundary-normal location to Nothing:
+    LX, LY, LZ = Tuple(i == dim ? Nothing : loc[i] for i = 1:3)
 
     indices, interps = index_and_interp_dependencies(LX, LY, LZ,
                                                      boundary_func.field_dependencies,
-                                                     model_field_names)
+                                                     prognostic_field_names)
 
     regularized_boundary_func = ContinuousBoundaryFunction{LX, LY, LZ, I}(boundary_func.func,
                                                                           boundary_func.parameters,
@@ -91,31 +85,42 @@ function regularize_boundary_condition(bc::BoundaryCondition{C, <:ContinuousBoun
     return BoundaryCondition(C, regularized_boundary_func)
 end
 
+@inline boundary_index(i) = ifelse(i == 1, 1, i + 1) # convert near-boundary Center() index into boundary Face() index
+
 #####
 ##### Kernel functions
 #####
 
+# Return ContinuousBoundaryFunction on east or west boundaries.
 @inline function (bc::ContinuousBoundaryFunction{Nothing, LY, LZ, i})(j, k, grid, clock, model_fields) where {LY, LZ, i}
     args = user_function_arguments(i, j, k, grid, model_fields, bc.parameters, bc)
 
-    return bc.func(ynode(nothing, LY(), LZ(), i, j, k, grid),
-                   znode(nothing, LY(), LZ(), i, j, k, grid),
+    i′ = boundary_index(i)
+
+    return bc.func(ynode(Face(), LY(), LZ(), i′, j, k, grid),
+                   znode(Face(), LY(), LZ(), i′, j, k, grid),
                    clock.time, args...)
 end
 
+# Return ContinuousBoundaryFunction on south or north boundaries.
 @inline function (bc::ContinuousBoundaryFunction{LX, Nothing, LZ, j})(i, k, grid, clock, model_fields) where {LX, LZ, j}
     args = user_function_arguments(i, j, k, grid, model_fields, bc.parameters, bc)
 
-    return bc.func(xnode(LX(), nothing, LZ(), i, j, k, grid),
-                   znode(LX(), nothing, LZ(), i, j, k, grid),
+    j′ = boundary_index(j)
+
+    return bc.func(xnode(LX(), Face(), LZ(), i, j′, k, grid),
+                   znode(LX(), Face(), LZ(), i, j′, k, grid),
                    clock.time, args...)
 end
 
+# Return ContinuousBoundaryFunction on bottom or top boundaries.
 @inline function (bc::ContinuousBoundaryFunction{LX, LY, Nothing, k})(i, j, grid, clock, model_fields) where {LX, LY, k}
     args = user_function_arguments(i, j, k, grid, model_fields, bc.parameters, bc)
 
-    return bc.func(xnode(LX(), LY(), nothing, i, j, k, grid),
-                   ynode(LY(), LY(), nothing, i, j, k, grid),
+    k′ = boundary_index(k)
+
+    return bc.func(xnode(LX(), LY(), Face(), i, j, k′, grid),
+                   ynode(LY(), LY(), Face(), i, j, k′, grid),
                    clock.time, args...)
 end
 

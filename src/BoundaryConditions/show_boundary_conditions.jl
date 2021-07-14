@@ -1,13 +1,16 @@
 import Base: show
 import Oceananigans: short_show
 
-bcclassification_str(::FBC)  = "Flux"
-bcclassification_str(::PBC)  = "Periodic"
-bcclassification_str(::OBC)  = "Open"
-bcclassification_str(::VBC)  = "Value"
-bcclassification_str(::GBC)  = "Gradient"
-bcclassification_str(::ZFBC) = "ZeroFlux"
-bcclassification_str(::Nothing) = "Nothing"
+const DFBC = DefaultPrognosticFieldBoundaryCondition
+
+bc_str(::FBC)     = "Flux"
+bc_str(::PBC)     = "Periodic"
+bc_str(::OBC)     = "Open"
+bc_str(::VBC)     = "Value"
+bc_str(::GBC)     = "Gradient"
+bc_str(::ZFBC)    = "ZeroFlux"
+bc_str(::DFBC)    = "Default"
+bc_str(::Nothing) = "Nothing"
 
 #####
 ##### BoundaryCondition
@@ -24,21 +27,29 @@ function print_condition(f::Function)
 end
 
 show(io::IO, bc::BoundaryCondition) =
-    print(io, "BoundaryCondition: type=$(bcclassification_str(bc)), condition=$(print_condition(bc.condition))")
+    print(io, "BoundaryCondition: classification=$(bc_str(bc)), condition=$(print_condition(bc.condition))")
 
 #####
 ##### FieldBoundaryConditions
 #####
 
 short_show(fbcs::FieldBoundaryConditions) =
-    string("x=(west=$(bcclassification_str(fbcs.x.left)), east=$(bcclassification_str(fbcs.x.right))), ",
-           "y=(south=$(bcclassification_str(fbcs.y.left)), north=$(bcclassification_str(fbcs.y.right))), ",
-           "z=(bottom=$(bcclassification_str(fbcs.z.left)), top=$(bcclassification_str(fbcs.z.right)))")
+    string("west=$(bc_str(fbcs.west)), ",
+           "east=$(bc_str(fbcs.east)), ",
+           "south=$(bc_str(fbcs.south)), ",
+           "north=$(bc_str(fbcs.north)), ",
+           "bottom=$(bc_str(fbcs.bottom)), ",
+           "top=$(bc_str(fbcs.top)), ",
+           "immersed=$(bc_str(fbcs.immersed))")
 
 show_field_boundary_conditions(bcs::FieldBoundaryConditions, padding="") =
-    string("Oceananigans.FieldBoundaryConditions (NamedTuple{(:x, :y, :z)}), with boundary conditions", '\n',
-           padding, "├── x: ", typeof(bcs.x), '\n',
-           padding, "├── y: ", typeof(bcs.y), '\n',
-           padding, "└── z: ", typeof(bcs.z))
+    string("Oceananigans.FieldBoundaryConditions, with boundary conditions", '\n',
+           padding, "├── west: ",     typeof(bcs.west), '\n',
+           padding, "├── east: ",     typeof(bcs.east), '\n',
+           padding, "├── south: ",    typeof(bcs.south), '\n',
+           padding, "├── north: ",    typeof(bcs.north), '\n',
+           padding, "├── bottom: ",   typeof(bcs.bottom), '\n',
+           padding, "├── top: ",      typeof(bcs.top), '\n',
+           padding, "└── immersed: ", typeof(bcs.immersed))
 
 Base.show(io::IO, fieldbcs::FieldBoundaryConditions) = print(io, show_field_boundary_conditions(fieldbcs))

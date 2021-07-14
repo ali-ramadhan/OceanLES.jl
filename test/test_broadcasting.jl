@@ -27,7 +27,10 @@
         three_point_grid = RegularRectilinearGrid(size=(1, 1, 3), extent=(1, 1, 1))
 
         a2 = CenterField(arch, three_point_grid)
-        b2 = ZFaceField(arch, three_point_grid)
+
+        b2_bcs = FieldBoundaryConditions(grid, (Center, Center, Face), top=OpenBoundaryCondition(0), bottom=OpenBoundaryCondition(0))
+        b2 = ZFaceField(arch, three_point_grid, b2_bcs)
+
         b2 .= 1
         fill_halo_regions!(b2, arch) # sets b2[1, 1, 1] = b[1, 1, 4] = 0
 

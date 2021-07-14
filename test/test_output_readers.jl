@@ -10,12 +10,12 @@ using Oceananigans.Fields: location
 function generate_some_interesting_simulation_data(Nx, Ny, Nz; architecture=CPU())
     grid = RegularRectilinearGrid(size=(Nx, Ny, Nz), extent=(64, 64, 32))
 
-    T_bcs = TracerBoundaryConditions(grid, top = FluxBoundaryCondition(5e-5), bottom = GradientBoundaryCondition(0.01))
-    u_bcs = UVelocityBoundaryConditions(grid, top = FluxBoundaryCondition(-3e-4))
+    T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(5e-5), bottom = GradientBoundaryCondition(0.01))
+    u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(-3e-4))
 
     @inline Qˢ(x, y, t, S, evaporation_rate) = - evaporation_rate * S
     evaporation_bc = FluxBoundaryCondition(Qˢ, field_dependencies=:S, parameters=3e-7)
-    S_bcs = TracerBoundaryConditions(grid, top=evaporation_bc)
+    S_bcs = FieldBoundaryConditions(top=evaporation_bc)
 
     model = IncompressibleModel(
                architecture = architecture,

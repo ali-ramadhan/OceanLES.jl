@@ -6,7 +6,7 @@ using Oceananigans: AbstractModel, AbstractOutputWriter, AbstractDiagnostic
 using Oceananigans.Architectures: AbstractArchitecture, GPU
 using Oceananigans.Advection: AbstractAdvectionScheme, CenteredSecondOrder
 using Oceananigans.BuoyancyModels: validate_buoyancy, regularize_buoyancy, SeawaterBuoyancy, g_Earth
-using Oceananigans.BoundaryConditions: regularize_field_boundary_conditions, TracerBoundaryConditions
+using Oceananigans.BoundaryConditions: regularize_field_boundary_conditions
 using Oceananigans.Fields: Field, CenterField, tracernames, VelocityFields, TracerFields
 using Oceananigans.Forcings: model_forcing
 using Oceananigans.Grids: inflate_halo_size, with_halo, AbstractRectilinearGrid, AbstractCurvilinearGrid, AbstractHorizontallyCurvilinearGrid
@@ -24,7 +24,7 @@ validate_tracer_advection(invalid_tracer_advection, grid) = error("$invalid_trac
 validate_tracer_advection(tracer_advection_tuple::NamedTuple, grid) = CenteredSecondOrder(), tracer_advection_tuple
 validate_tracer_advection(tracer_advection::AbstractAdvectionScheme, grid) = tracer_advection, NamedTuple()
 
-PressureField(arch, grid) = (pHY′ = CenterField(arch, grid, TracerBoundaryConditions(grid)),)
+PressureField(arch, grid) = (; pHY′ = CenterField(arch, grid))
 
 mutable struct HydrostaticFreeSurfaceModel{TS, E, A<:AbstractArchitecture, S,
                                            G, T, V, B, R, F, P, U, C, Φ, K, AF} <: AbstractModel{TS}
@@ -112,24 +112,33 @@ function HydrostaticFreeSurfaceModel(; grid,
     momentum_advection = validate_momentum_advection(momentum_advection, grid)
 
     tracers = tupleit(tracers) # supports tracers=:c keyword argument (for example)
-    validate_buoyancy(buoyancy, tracernames(tracers))
 
+    validate_buoyancy(buoyancy, tracernames(tracers))
     buoyancy = regularize_buoyancy(buoyancy)
 
-    # Recursively "regularize" field-dependent boundary conditions by supplying list of tracer names.
-    # We also regularize boundary conditions included in velocities, tracers, pressure, and diffusivities.
+    # Collect boundary conditions for all model prognostic fields and, if specified, some model
+    # auxiliary fields. Boundary conditions are "regularized" based on the _name_ of the field:
+    # boundary conditions on u, v are regularized assuming they represent momentum at appropriate
+    # staggered locations. All other fields are regularized assuming they are tracers.
     # Note that we do not regularize boundary conditions contained in *tupled* diffusivity fields right now.
+    #
+    # First, we extract boundary conditions that are embedded within any _user-specified_ field tuples:
     embedded_boundary_conditions = merge(extract_boundary_conditions(velocities),
                                          extract_boundary_conditions(tracers),
                                          extract_boundary_conditions(pressure),
                                          extract_boundary_conditions(diffusivities))
 
-    boundary_conditions = merge(embedded_boundary_conditions, boundary_conditions)
+    # Next, we form a list of default boundary conditions:
+    prognostic_field_names = (:u, :v, :η, tracernames(tracers)...)
+    default_boundary_conditions = NamedTuple{prognostic_field_names}(Tuple(FieldBoundaryConditions() for name in prognostic_field_names))
 
-    model_field_names = (:u, :v, :w, :η, tracernames(tracers)...)
-    boundary_conditions = regularize_field_boundary_conditions(boundary_conditions, grid, model_field_names)
+    # Then we merge specified, embedded, and default boundary conditions. Specified boundary conditions
+    # have precedence, followed by embedded, followed by default.
+    boundary_conditions = merge(default_boundary_conditions, embedded_boundary_conditions, boundary_conditions)
+    boundary_conditions = regularize_field_boundary_conditions(boundary_conditions, grid, prognostic_field_names)
 
-    # TKEBasedVerticalDiffusivity enforces boundary conditions on TKE:
+    # Finally, we ensure that closure-specific boundary conditions, such as
+    # those required by TKEBasedVerticalDiffusivity, are enforced:
     boundary_conditions = add_closure_specific_boundary_conditions(closure, boundary_conditions, grid, tracernames(tracers), buoyancy)
 
     # Ensure `closure` describes all tracers

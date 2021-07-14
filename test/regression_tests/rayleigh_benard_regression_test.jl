@@ -36,8 +36,8 @@ function run_rayleigh_benard_regression_test(arch, grid_type)
     c★(x, z) = exp(4z) * sin(2π/Lx * x)
     Fc(i, j, k, grid, clock, model_fields) = 1/10 * (c★(xnode(Center(), i, grid), znode(Center(), k, grid)) - model_fields.c[i, j, k])
 
-    bbcs = TracerBoundaryConditions(grid,    top = BoundaryCondition(Value, 0.0),
-                                          bottom = BoundaryCondition(Value, Δb))
+    bbcs = FieldBoundaryConditions(top = BoundaryCondition(Value, 0.0),
+                                   bottom = BoundaryCondition(Value, Δb))
 
     model = IncompressibleModel(
                architecture = arch,

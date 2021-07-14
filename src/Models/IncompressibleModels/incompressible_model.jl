@@ -22,24 +22,24 @@ const ParticlesOrNothing = Union{Nothing, LagrangianParticles}
 mutable struct IncompressibleModel{TS, E, A<:AbstractArchitecture, G, T, B, R, SD, U, C, Φ, F,
                                    V, S, K, BG, P, I} <: AbstractModel{TS}
 
-         architecture :: A         # Computer `Architecture` on which `Model` is run
-                 grid :: G         # Grid of physical points on which `Model` is solved
-                clock :: Clock{T}  # Tracks iteration number and simulation time of `Model`
-            advection :: V         # Advection scheme for velocities _and_ tracers
-             buoyancy :: B         # Set of parameters for buoyancy model
-             coriolis :: R         # Set of parameters for the background rotation rate of `Model`
-         stokes_drift :: SD        # Set of parameters for surfaces waves via the Craik-Leibovich approximation
-              forcing :: F         # Container for forcing functions defined by the user
-              closure :: E         # Diffusive 'turbulence closure' for all model fields
-    background_fields :: BG        # Background velocity and tracer fields
-            particles :: P         # Particle set for Lagrangian tracking
-           velocities :: U         # Container for velocity fields `u`, `v`, and `w`
-              tracers :: C         # Container for tracer fields
-            pressures :: Φ         # Container for hydrostatic and nonhydrostatic pressure
-        diffusivities :: K         # Container for turbulent diffusivities
-          timestepper :: TS        # Object containing timestepper fields and parameters
-      pressure_solver :: S         # Pressure/Poisson solver
-    immersed_boundary :: I         # Models the physics of immersed boundaries within the grid
+         architecture :: A        # Computer `Architecture` on which `Model` is run
+                 grid :: G        # Grid of physical points on which `Model` is solved
+                clock :: Clock{T} # Tracks iteration number and simulation time of `Model`
+            advection :: V        # Advection scheme for velocities _and_ tracers
+             buoyancy :: B        # Set of parameters for buoyancy model
+             coriolis :: R        # Set of parameters for the background rotation rate of `Model`
+         stokes_drift :: SD       # Set of parameters for surfaces waves via the Craik-Leibovich approximation
+              forcing :: F        # Container for forcing functions defined by the user
+              closure :: E        # Diffusive 'turbulence closure' for all model fields
+    background_fields :: BG       # Background velocity and tracer fields
+            particles :: P        # Particle set for Lagrangian tracking
+           velocities :: U        # Container for velocity fields `u`, `v`, and `w`
+              tracers :: C        # Container for tracer fields
+            pressures :: Φ        # Container for hydrostatic and nonhydrostatic pressure
+        diffusivities :: K        # Container for turbulent diffusivities
+          timestepper :: TS       # Object containing timestepper fields and parameters
+      pressure_solver :: S        # Pressure/Poisson solver
+    immersed_boundary :: I        # Models the physics of immersed boundaries within the grid
 end
 
 """
@@ -109,8 +109,8 @@ function IncompressibleModel(;    grid,
     end
 
     tracers = tupleit(tracers) # supports tracers=:c keyword argument (for example)
-    validate_buoyancy(buoyancy, tracernames(tracers))
 
+    validate_buoyancy(buoyancy, tracernames(tracers))
     buoyancy = regularize_buoyancy(buoyancy)
 
     # Adjust halos when the advection scheme or turbulence closure requires it.
@@ -119,18 +119,26 @@ function IncompressibleModel(;    grid,
     Hx, Hy, Hz = inflate_halo_size(grid.Hx, grid.Hy, grid.Hz, topology(grid), advection, closure)
     grid = with_halo((Hx, Hy, Hz), grid)
 
-    # Recursively "regularize" field-dependent boundary conditions by supplying list of tracer names.
-    # We also regularize boundary conditions included in velocities, tracers, pressures, and diffusivities.
+    # Collect boundary conditions for all model prognostic fields and, if specified, some model
+    # auxiliary fields. Boundary conditions are "regularized" based on the _name_ of the field:
+    # boundary conditions on u, v, w are regularized assuming they represent momentum at appropriate
+    # staggered locations. All other fields are regularized assuming they are tracers.
     # Note that we do not regularize boundary conditions contained in *tupled* diffusivity fields right now.
+    #
+    # First, we extract boundary conditions that are embedded within any _user-specified_ field tuples:
     embedded_boundary_conditions = merge(extract_boundary_conditions(velocities),
                                          extract_boundary_conditions(tracers),
                                          extract_boundary_conditions(pressures),
                                          extract_boundary_conditions(diffusivities))
 
-    boundary_conditions = merge(embedded_boundary_conditions, boundary_conditions)
+    # Next, we form a list of default boundary conditions:
+    prognostic_field_names = (:u, :v, :w, tracernames(tracers)...)
+    default_boundary_conditions = NamedTuple{prognostic_field_names}(FieldBoundaryConditions() for name in prognostic_field_names)
 
-    model_field_names = (:u, :v, :w, tracernames(tracers)...)
-    boundary_conditions = regularize_field_boundary_conditions(boundary_conditions, grid, model_field_names)
+    # Finally, we merge specified, embedded, and default boundary conditions. Specified boundary conditions
+    # have precedence, followed by embedded, followed by default.
+    boundary_conditions = merge(default_boundary_conditions, embedded_boundary_conditions, boundary_conditions)
+    boundary_conditions = regularize_field_boundary_conditions(boundary_conditions, grid, prognostic_field_names)
 
     # Ensure `closure` describes all tracers
     closure = with_tracers(tracernames(tracers), closure)
@@ -145,6 +153,7 @@ function IncompressibleModel(;    grid,
         pressure_solver = PressureSolver(architecture, grid)
     end
 
+    # Materialize background fields
     background_fields = BackgroundFields(background_fields, tracernames(tracers), grid, clock)
 
     # Instantiate timestepper if not already instantiated

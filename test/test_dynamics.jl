@@ -256,7 +256,7 @@ function stratified_fluid_remains_at_rest_with_tilted_gravity_buoyancy_tracer(ar
 
     y_bc = GradientBoundaryCondition(N² * g̃[2])
     z_bc = GradientBoundaryCondition(N² * g̃[3])
-    b_bcs = TracerBoundaryConditions(grid, bottom=z_bc, top=z_bc, south=y_bc, north=y_bc)
+    b_bcs = FieldBoundaryConditions(bottom=z_bc, top=z_bc, south=y_bc, north=y_bc)
 
     model = IncompressibleModel(
                architecture = arch,
@@ -312,7 +312,7 @@ function stratified_fluid_remains_at_rest_with_tilted_gravity_temperature_tracer
 
     y_bc = GradientBoundaryCondition(∂T∂z * g̃[2])
     z_bc = GradientBoundaryCondition(∂T∂z * g̃[3])
-    T_bcs = TracerBoundaryConditions(grid, bottom=z_bc, top=z_bc, south=y_bc, north=y_bc)
+    T_bcs = FieldBoundaryConditions(bottom=z_bc, top=z_bc, south=y_bc, north=y_bc)
 
     model = IncompressibleModel(
                architecture = arch,

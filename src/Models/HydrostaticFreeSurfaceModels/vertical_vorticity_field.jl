@@ -1,7 +1,6 @@
 using Oceananigans.Grids: Face, Face, Center
 using Oceananigans.Operators: ζ₃ᶠᶠᵃ
-using Oceananigans.Fields: KernelComputedField, ComputedFieldBoundaryConditions
-
+using Oceananigans.Fields: KernelComputedField
 using KernelAbstractions: @kernel
 
 @kernel function compute_vertical_vorticity!(ζ, grid, u, v)
@@ -21,8 +20,5 @@ the vertical vorticity by first integrating the velocity field around the border
 of the vorticity cell to find the vertical circulation, and then dividing by the area of
 the vorticity cell to compute vertical vorticity.
 """
-function VerticalVorticityField(model)
-    return KernelComputedField(Face, Face, Center, compute_vertical_vorticity!, model, 
-                        boundary_conditions = ComputedFieldBoundaryConditions(model.grid, (Face, Face, Center)),
-                        computed_dependencies = (model.velocities.u, model.velocities.v))
-end
+VerticalVorticityField(model) = KernelComputedField(Face, Face, Center, compute_vertical_vorticity!, model, 
+                                                    computed_dependencies = (model.velocities.u, model.velocities.v))

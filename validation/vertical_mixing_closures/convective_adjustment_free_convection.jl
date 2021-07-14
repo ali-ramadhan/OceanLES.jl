@@ -9,7 +9,7 @@ grid = RegularRectilinearGrid(size=32, z=(-64, 0), topology=(Flat, Flat, Bounded
 closure = ConvectiveAdjustmentVerticalDiffusivity(convective_κz=1, background_κz=1e-5)
                                       
 Qᵇ = 1e-8
-b_bcs = TracerBoundaryConditions(grid; top = FluxBoundaryCondition(Qᵇ))
+b_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Qᵇ))
 
 model = HydrostaticFreeSurfaceModel(grid = grid,
                                     tracers = :b,

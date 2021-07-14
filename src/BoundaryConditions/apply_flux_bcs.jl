@@ -12,7 +12,7 @@ Apply flux boundary conditions to a field `c` by adding the associated flux dive
 the source term `Gc` at the left and right.
 """
 apply_x_bcs!(Gc, c, arch, dep, args...) = launch!(arch, c.grid, :yz, _apply_x_bcs!, Gc, instantiated_location(Gc), c.grid, 
-                                                  c.boundary_conditions.x.left, c.boundary_conditions.x.right, args...,
+                                                  c.boundary_conditions.west, c.boundary_conditions.east, args...,
                                                   dependencies=dep)
 
 """
@@ -22,7 +22,7 @@ Apply flux boundary conditions to a field `c` by adding the associated flux dive
 the source term `Gc` at the left and right.
 """
 apply_y_bcs!(Gc, c, arch, dep, args...) = launch!(arch, c.grid, :xz, _apply_y_bcs!, Gc, instantiated_location(Gc), c.grid, 
-                                                  c.boundary_conditions.y.left, c.boundary_conditions.y.right, args...,
+                                                  c.boundary_conditions.south, c.boundary_conditions.north, args...,
                                                   dependencies=dep)
 
 """
@@ -32,7 +32,7 @@ Apply flux boundary conditions to a field `c` by adding the associated flux dive
 the source term `Gc` at the top and bottom.
 """
 apply_z_bcs!(Gc, c, arch, dep, args...) = launch!(arch, c.grid, :xy, _apply_z_bcs!, Gc, instantiated_location(Gc), c.grid, 
-                                                  c.boundary_conditions.z.left, c.boundary_conditions.z.right, args...,
+                                                  c.boundary_conditions.bottom, c.boundary_conditions.top, args...,
                                                   dependencies=dep)
 
 apply_x_bcs!(::Nothing, args...) = nothing
@@ -92,7 +92,7 @@ end
 @inline flip(::Face) = Center()
 
 """
-    apply_x_west_bc!(Gc, west_flux::BC{<:Flux}, j, k, grid, args...)
+    apply_x_west_bc!(Gc, loc, west_flux::BC{<:Flux}, j, k, grid, args...)
 
 Add the flux divergence associated with a west flux boundary condition on `c`.
 Note that because
@@ -125,7 +125,7 @@ end
 end
 
 """
-    apply_x_east_bc!(Gc, top_flux::BC{<:Flux}, j, k, grid, args...)
+    apply_x_east_bc!(Gc, loc, east_flux::BC{<:Flux}, j, k, grid, args...)
 
 Add the part of flux divergence associated with a east boundary condition on `c`.
 Note that because

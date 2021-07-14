@@ -116,7 +116,6 @@ numerical_pages = [
     "Large eddy simulation" => "numerical_implementation/large_eddy_simulation.md"
 ]
 
-
 appendix_pages = [
     "Staggered grid" => "appendix/staggered_grid.md",
     "Fractional step method" => "appendix/fractional_step.md",
@@ -161,7 +160,7 @@ makedocs(bib,
    doctest = true,
     strict = true,
      clean = true,
- checkdocs = :none  # Should fix our docstring so we can use checkdocs=:exports with strict=true.
+ checkdocs = :none # Should fix our docstring so we can use checkdocs=:exports with strict=true.
 )
 
 deploydocs(

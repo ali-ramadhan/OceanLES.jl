@@ -4,13 +4,13 @@ using Oceananigans.BoundaryConditions
 using Oceananigans.BoundaryConditions: AbstractBoundaryConditionClassification
 
 import Base: show
-import Oceananigans.BoundaryConditions: bcclassification_str, print_condition
+import Oceananigans.BoundaryConditions: bc_str, print_condition
 
 struct CubedSphereExchange <: AbstractBoundaryConditionClassification end
 
 const CubedSphereExchangeBC = BoundaryCondition{<:CubedSphereExchange}
 
-bcclassification_str(::CubedSphereExchangeBC) ="CubedSphereExchange"
+bc_str(::CubedSphereExchangeBC) ="CubedSphereExchange"
 
 CubedSphereExchangeBoundaryCondition(val; kwargs...) = BoundaryCondition(CubedSphereExchange, val; kwargs...)
 
@@ -65,10 +65,13 @@ function inject_cubed_sphere_exchange_boundary_conditions(field_bcs, face_number
     south_exchange_bc = CubedSphereExchangeBoundaryCondition(south_exchange_info)
     north_exchange_bc = CubedSphereExchangeBoundaryCondition(north_exchange_info)
 
-    x_bcs = CoordinateBoundaryConditions(west_exchange_bc, east_exchange_bc)
-    y_bcs = CoordinateBoundaryConditions(south_exchange_bc, north_exchange_bc)
-
-    return FieldBoundaryConditions(x_bcs, y_bcs, field_bcs.z)
+    return FieldBoundaryConditions(west_exchange_bc,
+                                   east_exchange_bc,
+                                   south_exchange_bc,
+                                   north_exchange_bc,
+                                   field_bcs.bottom,
+                                   field_bcs.top,
+                                   field_bcs.immersed)
 end
 
 Adapt.adapt_structure(to, ::CubedSphereExchangeInformation) = nothing

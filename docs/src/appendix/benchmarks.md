@@ -10,7 +10,7 @@ format the benchmark results.
 
 This is a benchmark of a simple "static ocean" configuration. The time stepping and Poisson
 solver still takes the same amount of time whether the ocean is static or active, so it is
-quite indicative of actual performance. It tests the performance of a bare-bones
+indicative of actual performance. It tests the performance of a bare-bones
 horizontally-periodic model with `topology = (Periodic, Periodic, Bounded)`.
 
 ```

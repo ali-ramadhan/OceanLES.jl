@@ -31,26 +31,6 @@ struct ComputedField{X, Y, Z, S, O, A, D, G, T, C} <: AbstractDataField{X, Y, Z,
     end
 end
 
-# We define special default boundary conditions for ComputedField, because currently
-# `DefaultBoundaryCondition` uses ImpenetrableBoundaryCondition() in bounded directions
-# and for fields on Faces, which is not what we want in general for ComputedFields.
-DefaultComputedFieldBoundaryCondition(::Type{Grids.Periodic}, loc) = PeriodicBoundaryCondition()
-DefaultComputedFieldBoundaryCondition(::Type{Flat}, loc) = nothing
-DefaultComputedFieldBoundaryCondition(::Type{Bounded}, ::Type{Center}) = NoFluxBoundaryCondition()
-DefaultComputedFieldBoundaryCondition(::Type{Bounded}, ::Type{Face}) = nothing
-
-function ComputedFieldBoundaryConditions(grid, loc;
-                                           east = DefaultComputedFieldBoundaryCondition(topology(grid, 1), loc[1]),
-                                           west = DefaultComputedFieldBoundaryCondition(topology(grid, 1), loc[1]),
-                                          south = DefaultComputedFieldBoundaryCondition(topology(grid, 2), loc[2]),
-                                          north = DefaultComputedFieldBoundaryCondition(topology(grid, 2), loc[2]),
-                                         bottom = DefaultComputedFieldBoundaryCondition(topology(grid, 3), loc[3]),
-                                            top = DefaultComputedFieldBoundaryCondition(topology(grid, 3), loc[3]))
-
-    return FieldBoundaryConditions(grid, loc; east=east, west=west, south=south, north=north, bottom=bottom, top=top)
-end
-
-
 """
     ComputedField(operand [, arch=nothing]; data = nothing, recompute_safely = true,
                   boundary_conditions = ComputedFieldBoundaryConditions(operand.grid, location(operand))
@@ -75,7 +55,7 @@ end
 function ComputedField(LX, LY, LZ, operand, arch, grid;
                        data = nothing,
                        recompute_safely = true,
-                       boundary_conditions = ComputedFieldBoundaryConditions(grid, (LX, LY, LZ)))
+                       boundary_conditions = FieldBoundaryConditions(grid, (LX, LY, LZ)))
 
     # Architecturanigans
     operand_arch = architecture(operand)

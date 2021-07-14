@@ -12,7 +12,7 @@
 # The phytoplankton in our model are advected, diffuse, grow, and die according to
 #
 # ```math
-# ∂_t P + \boldsymbol{u ⋅ ∇} P - κ ∇²P = (μ₀ \exp(z / λ) - m) \, P \, ,
+# ∂_t P + \boldsymbol{v ⋅ ∇} P - κ ∇²P = (μ₀ \exp(z / λ) - m) \, P \, ,
 # ```
 #
 # where ``\boldsymbol{v}`` is the turbulent velocity field, ``κ`` is an isotropic diffusivity,
@@ -92,7 +92,7 @@ buoyancy_gradient_bc = GradientBoundaryCondition(N²)
 # In summary, the buoyancy boundary conditions impose a destabilizing flux
 # at the top and a stable buoyancy gradient at the bottom:
 
-buoyancy_bcs = TracerBoundaryConditions(grid, top = buoyancy_flux_bc, bottom = buoyancy_gradient_bc)
+buoyancy_bcs = FieldBoundaryConditions(top = buoyancy_flux_bc, bottom = buoyancy_gradient_bc)
 
 # ## Phytoplankton dynamics: light-dependent growth and uniform mortality
 #

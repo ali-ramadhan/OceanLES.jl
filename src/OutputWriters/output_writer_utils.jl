@@ -1,7 +1,7 @@
 using StructArrays: StructArray, replace_storage
 using Oceananigans.Fields: AbstractField
 using Oceananigans.ImmersedBoundaries: ImmersedBoundaryGrid
-using Oceananigans.BoundaryConditions: bcclassification_str, CoordinateBoundaryConditions, FieldBoundaryConditions
+using Oceananigans.BoundaryConditions: bc_str, FieldBoundaryConditions
 using Oceananigans.TimeSteppers: QuasiAdamsBashforth2TimeStepper, RungeKutta3TimeStepper
 using Oceananigans.LagrangianParticleTracking: LagrangianParticles
 
@@ -30,16 +30,16 @@ saveproperty!(file, location, p) =
 saveproperty!(file, location, p::ImmersedBoundaryGrid) = saveproperty!(file, location, p.grid)
 
 # Special saveproperty! so boundary conditions are easily readable outside julia.
-function saveproperty!(file, location, cbcs::CoordinateBoundaryConditions)
-    for endpoint in propertynames(cbcs)
-        endpoint_bc = getproperty(cbcs, endpoint)
-        file[location * "/$endpoint/type"] = bcclassification_str(endpoint_bc)
+function saveproperty!(file, location, bcs::FieldBoundaryConditions)
+    for boundary in propertynames(bcs)
+        bc = getproperty(bcs, endpoint)
+        file[location * "/$endpoint/type"] = bc_str(bc)
 
-        if endpoint_bc.condition isa Function
+        if bc.condition isa Function
             @warn "$field.$coord.$endpoint boundary is of type Function and cannot be saved to disk!"
-            file[location * "/$endpoint/condition"] = missing
+            file[location * "/$boundary/condition"] = missing
         else
-            file[location * "/$endpoint/condition"] = endpoint_bc.condition
+            file[location * "/$boundary/condition"] = bc.condition
         end
     end
 end

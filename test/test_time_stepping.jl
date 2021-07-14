@@ -101,7 +101,7 @@ function incompressible_in_time(arch, grid, Nt, timestepper)
     grid = model.grid
     u, v, w = model.velocities
 
-    div_U = CenterField(arch, grid, TracerBoundaryConditions(grid))
+    div_U = CenterField(arch, grid)
 
     # Just add a temperature perturbation so we get some velocity field.
     CUDA.@allowscalar interior(model.tracers.T)[8:24, 8:24, 8:24] .+= 0.01

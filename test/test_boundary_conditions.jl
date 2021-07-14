@@ -1,5 +1,4 @@
-using Oceananigans.BoundaryConditions: PBC, ZFBC, OBC, ContinuousBoundaryFunction, DiscreteBoundaryFunction
-
+using Oceananigans.BoundaryConditions: PBC, ZFBC, OBC, ContinuousBoundaryFunction, DiscreteBoundaryFunction, regularize_field_boundary_conditions
 using Oceananigans.Fields: Face, Center
 
 simple_bc(ξ, η, t) = exp(ξ) * cos(η) * sin(t)
@@ -48,191 +47,202 @@ end
         ppp_topology = (Periodic, Periodic, Periodic)
         ppp_grid = RegularRectilinearGrid(size=(1, 1, 1), extent=(1, 1, 1), topology=ppp_topology)
 
-        u_bcs = UVelocityBoundaryConditions(ppp_grid)
-        v_bcs = VVelocityBoundaryConditions(ppp_grid)
-        w_bcs = WVelocityBoundaryConditions(ppp_grid)
-        T_bcs = TracerBoundaryConditions(ppp_grid)
+        default_bcs = FieldBoundaryConditions()
+
+        u_bcs = regularize_field_boundary_conditions(default_bcs, ppp_grid, :u)
+        v_bcs = regularize_field_boundary_conditions(default_bcs, ppp_grid, :v)
+        w_bcs = regularize_field_boundary_conditions(default_bcs, ppp_grid, :w)
+        T_bcs = regularize_field_boundary_conditions(default_bcs, ppp_grid, :T)
 
         @test u_bcs isa FieldBoundaryConditions
-        @test u_bcs.x.left  isa PBC
-        @test u_bcs.x.right isa PBC
-        @test u_bcs.y.left  isa PBC
-        @test u_bcs.y.right isa PBC
-        @test u_bcs.z.left  isa PBC
-        @test u_bcs.z.right isa PBC
+        @test u_bcs.west  isa PBC
+        @test u_bcs.east isa PBC
+        @test u_bcs.south  isa PBC
+        @test u_bcs.north isa PBC
+        @test u_bcs.bottom  isa PBC
+        @test u_bcs.top isa PBC
 
         @test v_bcs isa FieldBoundaryConditions
-        @test v_bcs.x.left  isa PBC
-        @test v_bcs.x.right isa PBC
-        @test v_bcs.y.left  isa PBC
-        @test v_bcs.y.right isa PBC
-        @test v_bcs.z.left  isa PBC
-        @test v_bcs.z.right isa PBC
+        @test v_bcs.west  isa PBC
+        @test v_bcs.east isa PBC
+        @test v_bcs.south  isa PBC
+        @test v_bcs.north isa PBC
+        @test v_bcs.bottom  isa PBC
+        @test v_bcs.top isa PBC
 
         @test w_bcs isa FieldBoundaryConditions
-        @test w_bcs.x.left  isa PBC
-        @test w_bcs.x.right isa PBC
-        @test w_bcs.y.left  isa PBC
-        @test w_bcs.y.right isa PBC
-        @test w_bcs.z.left  isa PBC
-        @test w_bcs.z.right isa PBC
+        @test w_bcs.west  isa PBC
+        @test w_bcs.east isa PBC
+        @test w_bcs.south  isa PBC
+        @test w_bcs.north isa PBC
+        @test w_bcs.bottom  isa PBC
+        @test w_bcs.top isa PBC
 
         @test T_bcs isa FieldBoundaryConditions
-        @test T_bcs.x.left  isa PBC
-        @test T_bcs.x.right isa PBC
-        @test T_bcs.y.left  isa PBC
-        @test T_bcs.y.right isa PBC
-        @test T_bcs.z.left  isa PBC
-        @test T_bcs.z.right isa PBC
+        @test T_bcs.west  isa PBC
+        @test T_bcs.east isa PBC
+        @test T_bcs.south  isa PBC
+        @test T_bcs.north isa PBC
+        @test T_bcs.bottom  isa PBC
+        @test T_bcs.top isa PBC
 
         # Doubly periodic. Engineers call this a "Channel geometry".
         ppb_topology = (Periodic, Periodic, Bounded)
         ppb_grid = RegularRectilinearGrid(size=(1, 1, 1), extent=(1, 1, 1), topology=ppb_topology)
 
-        u_bcs = UVelocityBoundaryConditions(ppb_grid)
-        v_bcs = VVelocityBoundaryConditions(ppb_grid)
-        w_bcs = WVelocityBoundaryConditions(ppb_grid)
-        T_bcs = TracerBoundaryConditions(ppb_grid)
+        u_bcs = regularize_field_boundary_conditions(default_bcs, ppb_grid, :u)
+        v_bcs = regularize_field_boundary_conditions(default_bcs, ppb_grid, :v)
+        w_bcs = regularize_field_boundary_conditions(default_bcs, ppb_grid, :w)
+        T_bcs = regularize_field_boundary_conditions(default_bcs, ppb_grid, :T)
 
         @test u_bcs isa FieldBoundaryConditions
-        @test u_bcs.x.left  isa PBC
-        @test u_bcs.x.right isa PBC
-        @test u_bcs.y.left  isa PBC
-        @test u_bcs.y.right isa PBC
-        @test u_bcs.z.left  isa ZFBC
-        @test u_bcs.z.right isa ZFBC
+        @test u_bcs.west  isa PBC
+        @test u_bcs.east isa PBC
+        @test u_bcs.south  isa PBC
+        @test u_bcs.north isa PBC
+        @test u_bcs.bottom  isa ZFBC
+        @test u_bcs.top isa ZFBC
 
         @test v_bcs isa FieldBoundaryConditions
-        @test v_bcs.x.left  isa PBC
-        @test v_bcs.x.right isa PBC
-        @test v_bcs.y.left  isa PBC
-        @test v_bcs.y.right isa PBC
-        @test v_bcs.z.left  isa ZFBC
-        @test v_bcs.z.right isa ZFBC
+        @test v_bcs.west  isa PBC
+        @test v_bcs.east isa PBC
+        @test v_bcs.south  isa PBC
+        @test v_bcs.north isa PBC
+        @test v_bcs.bottom  isa ZFBC
+        @test v_bcs.top isa ZFBC
 
         @test w_bcs isa FieldBoundaryConditions
-        @test w_bcs.x.left  isa PBC
-        @test w_bcs.x.right isa PBC
-        @test w_bcs.y.left  isa PBC
-        @test w_bcs.y.right isa PBC
-        @test w_bcs.z.left  isa OBC
-        @test w_bcs.z.right isa OBC
+        @test w_bcs.west  isa PBC
+        @test w_bcs.east isa PBC
+        @test w_bcs.south  isa PBC
+        @test w_bcs.north isa PBC
+        @test w_bcs.bottom  isa OBC
+        @test w_bcs.top isa OBC
 
         @test T_bcs isa FieldBoundaryConditions
-        @test T_bcs.x.left  isa PBC
-        @test T_bcs.x.right isa PBC
-        @test T_bcs.y.left  isa PBC
-        @test T_bcs.y.right isa PBC
-        @test T_bcs.z.left  isa ZFBC
-        @test T_bcs.z.right isa ZFBC
+        @test T_bcs.west  isa PBC
+        @test T_bcs.east isa PBC
+        @test T_bcs.south  isa PBC
+        @test T_bcs.north isa PBC
+        @test T_bcs.bottom  isa ZFBC
+        @test T_bcs.top isa ZFBC
 
         # Singly periodic. Oceanographers call this a "Channel", engineers call it a "Pipe"
         pbb_topology = (Periodic, Bounded, Bounded)
         pbb_grid = RegularRectilinearGrid(size=(1, 1, 1), extent=(1, 1, 1), topology=pbb_topology)
 
-        u_bcs = UVelocityBoundaryConditions(pbb_grid)
-        v_bcs = VVelocityBoundaryConditions(pbb_grid)
-        w_bcs = WVelocityBoundaryConditions(pbb_grid)
-        T_bcs = TracerBoundaryConditions(pbb_grid)
+        u_bcs = regularize_field_boundary_conditions(default_bcs, pbb_grid, :u)
+        v_bcs = regularize_field_boundary_conditions(default_bcs, pbb_grid, :v)
+        w_bcs = regularize_field_boundary_conditions(default_bcs, pbb_grid, :w)
+        T_bcs = regularize_field_boundary_conditions(default_bcs, pbb_grid, :T)
 
         @test u_bcs isa FieldBoundaryConditions
-        @test u_bcs.x.left  isa PBC
-        @test u_bcs.x.right isa PBC
-        @test u_bcs.y.left  isa ZFBC
-        @test u_bcs.y.right isa ZFBC
-        @test u_bcs.z.left  isa ZFBC
-        @test u_bcs.z.right isa ZFBC
+        @test u_bcs.west  isa PBC
+        @test u_bcs.east isa PBC
+        @test u_bcs.south  isa ZFBC
+        @test u_bcs.north isa ZFBC
+        @test u_bcs.bottom  isa ZFBC
+        @test u_bcs.top isa ZFBC
 
         @test v_bcs isa FieldBoundaryConditions
-        @test v_bcs.x.left  isa PBC
-        @test v_bcs.x.right isa PBC
-        @test v_bcs.y.left  isa OBC
-        @test v_bcs.y.right isa OBC
-        @test v_bcs.z.left  isa ZFBC
-        @test v_bcs.z.right isa ZFBC
+        @test v_bcs.west  isa PBC
+        @test v_bcs.east isa PBC
+        @test v_bcs.south  isa OBC
+        @test v_bcs.north isa OBC
+        @test v_bcs.bottom  isa ZFBC
+        @test v_bcs.top isa ZFBC
 
         @test w_bcs isa FieldBoundaryConditions
-        @test w_bcs.x.left  isa PBC
-        @test w_bcs.x.right isa PBC
-        @test w_bcs.y.left  isa ZFBC
-        @test w_bcs.y.right isa ZFBC
-        @test w_bcs.z.left  isa OBC
-        @test w_bcs.z.right isa OBC
+        @test w_bcs.west  isa PBC
+        @test w_bcs.east isa PBC
+        @test w_bcs.south  isa ZFBC
+        @test w_bcs.north isa ZFBC
+        @test w_bcs.bottom  isa OBC
+        @test w_bcs.top isa OBC
 
         @test T_bcs isa FieldBoundaryConditions
-        @test T_bcs.x.left  isa PBC
-        @test T_bcs.x.right isa PBC
-        @test T_bcs.y.left  isa ZFBC
-        @test T_bcs.y.right isa ZFBC
-        @test T_bcs.z.left  isa ZFBC
-        @test T_bcs.z.right isa ZFBC
+        @test T_bcs.west  isa PBC
+        @test T_bcs.east isa PBC
+        @test T_bcs.south  isa ZFBC
+        @test T_bcs.north isa ZFBC
+        @test T_bcs.bottom  isa ZFBC
+        @test T_bcs.top isa ZFBC
 
         # Triply bounded. Oceanographers call this a "Basin", engineers call it a "Box"
         bbb_topology = (Bounded, Bounded, Bounded)
         bbb_grid = RegularRectilinearGrid(size=(1, 1, 1), extent=(1, 1, 1), topology=bbb_topology)
 
-        u_bcs = UVelocityBoundaryConditions(bbb_grid)
-        v_bcs = VVelocityBoundaryConditions(bbb_grid)
-        w_bcs = WVelocityBoundaryConditions(bbb_grid)
-        T_bcs = TracerBoundaryConditions(bbb_grid)
+        u_bcs = regularize_field_boundary_conditions(default_bcs, bbb_grid, :u)
+        v_bcs = regularize_field_boundary_conditions(default_bcs, bbb_grid, :v)
+        w_bcs = regularize_field_boundary_conditions(default_bcs, bbb_grid, :w)
+        T_bcs = regularize_field_boundary_conditions(default_bcs, bbb_grid, :T)
 
         @test u_bcs isa FieldBoundaryConditions
-        @test u_bcs.x.left  isa OBC
-        @test u_bcs.x.right isa OBC
-        @test u_bcs.y.left  isa ZFBC
-        @test u_bcs.y.right isa ZFBC
-        @test u_bcs.z.left  isa ZFBC
-        @test u_bcs.z.right isa ZFBC
+        @test u_bcs.west  isa OBC
+        @test u_bcs.east isa OBC
+        @test u_bcs.south  isa ZFBC
+        @test u_bcs.north isa ZFBC
+        @test u_bcs.bottom  isa ZFBC
+        @test u_bcs.top isa ZFBC
 
         @test v_bcs isa FieldBoundaryConditions
-        @test v_bcs.x.left  isa ZFBC
-        @test v_bcs.x.right isa ZFBC
-        @test v_bcs.y.left  isa OBC
-        @test v_bcs.y.right isa OBC
-        @test v_bcs.z.left  isa ZFBC
-        @test v_bcs.z.right isa ZFBC
+        @test v_bcs.west  isa ZFBC
+        @test v_bcs.east isa ZFBC
+        @test v_bcs.south  isa OBC
+        @test v_bcs.north isa OBC
+        @test v_bcs.bottom  isa ZFBC
+        @test v_bcs.top isa ZFBC
 
         @test w_bcs isa FieldBoundaryConditions
-        @test w_bcs.x.left  isa ZFBC
-        @test w_bcs.x.right isa ZFBC
-        @test w_bcs.y.left  isa ZFBC
-        @test w_bcs.y.right isa ZFBC
-        @test w_bcs.z.left  isa OBC
-        @test w_bcs.z.right isa OBC
+        @test w_bcs.west  isa ZFBC
+        @test w_bcs.east isa ZFBC
+        @test w_bcs.south  isa ZFBC
+        @test w_bcs.north isa ZFBC
+        @test w_bcs.bottom  isa OBC
+        @test w_bcs.top isa OBC
 
         @test T_bcs isa FieldBoundaryConditions
-        @test T_bcs.x.left  isa ZFBC
-        @test T_bcs.x.right isa ZFBC
-        @test T_bcs.y.left  isa ZFBC
-        @test T_bcs.y.right isa ZFBC
-        @test T_bcs.z.left  isa ZFBC
-        @test T_bcs.z.right isa ZFBC
+        @test T_bcs.west  isa ZFBC
+        @test T_bcs.east isa ZFBC
+        @test T_bcs.south  isa ZFBC
+        @test T_bcs.north isa ZFBC
+        @test T_bcs.bottom  isa ZFBC
+        @test T_bcs.top isa ZFBC
 
         grid = bbb_grid
         
-        T_bcs = TracerBoundaryConditions(grid;
-                                           east = BoundaryCondition(Value, simple_bc),
-                                           west = BoundaryCondition(Value, simple_bc),
-                                         bottom = BoundaryCondition(Value, simple_bc),
-                                            top = BoundaryCondition(Value, simple_bc),
-                                          north = BoundaryCondition(Value, simple_bc),
-                                          south = BoundaryCondition(Value, simple_bc)
-                                         )
+        T_bcs = FieldBoundaryConditions(grid, (Center, Center, Center),
+                                                   east = ValueBoundaryCondition(simple_bc),
+                                                   west = ValueBoundaryCondition(simple_bc),
+                                                 bottom = ValueBoundaryCondition(simple_bc),
+                                                    top = ValueBoundaryCondition(simple_bc),
+                                                  north = ValueBoundaryCondition(simple_bc),
+                                                  south = ValueBoundaryCondition(simple_bc))
 
-        # Note that boundary condition setting is valid only in cases where
-        # boundary conditionsare same type
-        
+        @test T_bcs.east.condition isa ContinuousBoundaryFunction
+        @test T_bcs.west.condition isa ContinuousBoundaryFunction 
+        @test T_bcs.north.condition isa ContinuousBoundaryFunction
+        @test T_bcs.south.condition isa ContinuousBoundaryFunction
+        @test T_bcs.top.condition isa ContinuousBoundaryFunction
+        @test T_bcs.bottom.condition isa ContinuousBoundaryFunction
+
+        @test T_bcs.east.condition.func === simple_bc
+        @test T_bcs.west.condition.func === simple_bc
+        @test T_bcs.north.condition.func === simple_bc
+        @test T_bcs.south.condition.func === simple_bc
+        @test T_bcs.top.condition.func === simple_bc
+        @test T_bcs.bottom.condition.func === simple_bc
+
         one_bc = BoundaryCondition(Value, 1.0)
-        two_bc = BoundaryCondition(Value, 2.0)
 
-        T_bcs = TracerBoundaryConditions(grid;
-                                           east = one_bc,
+        T_bcs = FieldBoundaryConditions(   east = one_bc,
                                            west = one_bc,
                                          bottom = one_bc,
                                             top = one_bc,
                                           north = one_bc,
-                                          south = one_bc,
-                                         )
+                                          south = one_bc)
+
+        T_bcs = regularize_field_boundary_conditions(T_bcs, grid, :T)
 
         @test T_bcs.east   === one_bc
         @test T_bcs.west   === one_bc
@@ -240,19 +250,5 @@ end
         @test T_bcs.south  === one_bc
         @test T_bcs.top    === one_bc
         @test T_bcs.bottom === one_bc
-
-        T_bcs.east   = two_bc
-        T_bcs.west   = two_bc
-        T_bcs.north  = two_bc
-        T_bcs.south  = two_bc
-        T_bcs.top    = two_bc
-        T_bcs.bottom = two_bc
-
-        @test T_bcs.east   === two_bc
-        @test T_bcs.west   === two_bc
-        @test T_bcs.north  === two_bc
-        @test T_bcs.south  === two_bc
-        @test T_bcs.top    === two_bc
-        @test T_bcs.bottom === two_bc
     end
 end

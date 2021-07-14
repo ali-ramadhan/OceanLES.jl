@@ -36,15 +36,17 @@ Pages   = [
     "BoundaryConditions/BoundaryConditions.jl",
     "BoundaryConditions/boundary_condition_classifications.jl",
     "BoundaryConditions/boundary_condition.jl",
-    "BoundaryConditions/coordinate_boundary_conditions.jl",
+    "BoundaryConditions/discrete_boundary_function.jl",
+    "BoundaryConditions/continuous_boundary_function.jl",
     "BoundaryConditions/field_boundary_conditions.jl",
-    "BoundaryConditions/boundary_function.jl",
-    "BoundaryConditions/parameterized_boundary_condition.jl",
     "BoundaryConditions/show_boundary_conditions.jl",
     "BoundaryConditions/fill_halo_regions.jl",
+    "BoundaryConditions/fill_halo_regions_value_gradient.jl",
+    "BoundaryConditions/fill_halo_regions_open.jl",
+    "BoundaryConditions/fill_halo_regions_periodic.jl",
+    "BoundaryConditions/fill_halo_regions_flux.jl",
+    "BoundaryConditions/fill_halo_regions_nothing.jl",
     "BoundaryConditions/apply_flux_bcs.jl",
-    "BoundaryConditions/apply_value_gradient_bcs.jl",
-    "BoundaryConditions/apply_normal_flow_bcs.jl"
 ]
 ```
 
@@ -107,7 +109,6 @@ Pages   = [
     "Fields/field.jl",
     "Fields/set!.jl",
     "Fields/show_fields.jl",
-    "Fields/field_utils.jl"
 ]
 ```
 

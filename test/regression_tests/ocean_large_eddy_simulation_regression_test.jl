@@ -23,10 +23,9 @@ function run_ocean_large_eddy_simulation_regression_test(arch, grid_type, closur
     end
 
     # Boundary conditions
-    u_bcs = UVelocityBoundaryConditions(grid, top = BoundaryCondition(Flux, Qᵘ))
-    T_bcs = TracerBoundaryConditions(grid, top = BoundaryCondition(Flux, Qᵀ),
-                                        bottom = BoundaryCondition(Gradient, ∂T∂z))
-    S_bcs = TracerBoundaryConditions(grid, top = BoundaryCondition(Flux, 5e-8))
+    u_bcs = FieldBoundaryConditions(top = BoundaryCondition(Flux, Qᵘ))
+    T_bcs = FieldBoundaryConditions(top = BoundaryCondition(Flux, Qᵀ), bottom = BoundaryCondition(Gradient, ∂T∂z))
+    S_bcs = FieldBoundaryConditions(top = BoundaryCondition(Flux, 5e-8))
 
     # Model instantiation
     model = IncompressibleModel(

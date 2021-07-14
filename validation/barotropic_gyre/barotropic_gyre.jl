@@ -37,15 +37,6 @@ underlying_grid = RegularLatitudeLongitudeGrid(size = (Nx, Ny, 1),
 
 grid = ImmersedBoundaryGrid(underlying_grid, GridFittedBoundary(raster_depth, mask_type=RasterDepthMask()))
 
-solid(x, y, z, i, j, k) = (
-                           if i > 30 && i < 35;
-                                   if j > 42 && j < 48;
-                                           return true;
-                                   end;
-                           end;
-                           return false;
-                          )
-
 free_surface = ImplicitFreeSurface(gravitational_acceleration=0.1)
 # free_surface = ExplicitFreeSurface(gravitational_acceleration=0.1)
 
@@ -73,12 +64,10 @@ v_bottom_drag_bc = FluxBoundaryCondition(v_bottom_drag,
                                          discrete_form = true,
                                          parameters = μ)
 
-u_bcs = UVelocityBoundaryConditions(grid,
-                                    top = surface_wind_stress_bc,
-                                    bottom = u_bottom_drag_bc)
+u_bcs = FieldBoundaryConditions(top = surface_wind_stress_bc,
+                                bottom = u_bottom_drag_bc)
 
-v_bcs = VVelocityBoundaryConditions(grid,
-                                    bottom = v_bottom_drag_bc)
+v_bcs = FieldBoundaryConditions(bottom = v_bottom_drag_bc)
 
 @show const νh₀ = 5e3 * (60 / grid.Nx)^2
 
